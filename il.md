@@ -27,7 +27,7 @@ Design goals, in priority order:
    to use a device is in the descriptor.
 3. **Additive growth.** New devices add properties, roles and fields without breaking
    anyone who already runs.
-4. **Small.** Five value types, one descriptor, no per-device-kind schemas.
+4. **Small.** Six value types, one descriptor, no per-device-kind schemas.
 
 ## 1. Descriptor
 
@@ -72,6 +72,7 @@ without a role, and is fully usable.
 | `label` `vendor` `model` | Human-facing identity. `label` is the name a person calls the device: a producer that knows the owner's own name for it (an account alias, a name typed into a setup screen) puts that here, and only falls back to a generic one ("Dehumidifier") when it has none. A consumer names the device, and so its entities, after it. |
 | `identifiers` | Free map of other ids (MAC, cloud id, Tuya device id) for matching with other systems. |
 | `props` | Property name → definition. Names are `[a-z0-9_]+`. |
+| `groups` | Optional map from a `group` name to `{ "kind", "class", "label" }`. A group that has a `kind` is a composite of its own (see below); one without is only a label. |
 
 The descriptor has no topics, URLs or addresses. Where a value physically travels is
 never part of the model.
@@ -80,18 +81,18 @@ never part of the model.
 
 | field | applies to | meaning |
 |---|---|---|
-| `type` | all | `binary`, `number`, `select`, `text`, `trigger`. |
+| `type` | all | `binary`, `number`, `select`, `text`, `trigger`, `event`. |
 | `rw` | all | `true` if the property accepts writes. Default `false`. |
 | `role` | all | Optional standard meaning, see section 4. |
 | `requires` | all | Optional name of a `binary` property that must currently be `true` for this property to accept writes (a control that only works while the panel has granted remote start). A consumer greys the control out otherwise; a producer still rejects a write made anyway. |
-| `group` | all | Optional string grouping properties of one sub-unit (`ch1`, `zone_a`) for devices with several of the same thing. |
+| `group` | all | Optional string grouping properties of one sub-unit (`ch1`, `zone_a`) for devices with several of the same thing. If the device's `groups` gives the group a `kind`, the group is a composite of its own. |
 | `unit` | number | Plain-text unit label (`%`, `°C`, `min`). |
 | `min` `max` `step` | number | Range and increment. |
-| `options` | select | Allowed values, stable order. |
+| `options` | select, event | Allowed values (for an `event`, the kinds of occurrence), stable order. |
 | `label` | all | Optional human-readable name. |
-| `class` | all | Optional open string saying *what* the value is, for a consumer that classifies values: for a number the quantity (`temperature`, `humidity`, `duration`, `energy`, `power`, `volume`, `pm1`, `pm25`, `pm10`), for a binary what being true means (`problem`, `running`, `heat`, `door`). Unknown classes are ignored. Not the same as the descriptor's `class`. |
+| `class` | all | Optional open string saying *what* the value is, for a consumer that classifies values: for a number the quantity (`temperature`, `humidity`, `duration`, `energy`, `power`, `volume`, `pm1`, `pm25`, `pm10`), for a binary what being true means (`problem`, `running`, `heat`, `door`), for a writable binary the kind of load it switches (`outlet`, `switch`), for a trigger what it does (`restart`, `identify`, `update`). Unknown classes are ignored. Not the same as the descriptor's `class`. |
 | `series` | number | `gauge` (default): the value goes up and down. `counter`: a running total that only grows and starts again from zero (energy of a cycle, water dispensed today). |
-| `category` | all | `diagnostic`: read only, of interest when troubleshooting (fault codes, locks, counters); `config`: a setting rather than an everyday control. Absent means an ordinary property. A consumer may hide or group by it; nothing else changes. |
+| `category` | all | `diagnostic`: read only, or a `trigger`, of interest when troubleshooting (fault codes, locks, counters, a factory reset); `config`: a setting rather than an everyday control. Absent means an ordinary property. A consumer may hide or group by it; nothing else changes. |
 | `src` | all | Optional opaque origin hint (a protocol tag, a Tuya dp id). Never interpreted by a consumer. |
 
 ### Values
@@ -103,6 +104,7 @@ never part of the model.
 | `select` | one of `options`, a string |
 | `text` | a string |
 | `trigger` | never a value. Writing to it (any payload) performs the action; it is never published and is always `rw`. |
+| `event` | never a value, and never `rw`: the mirror of a `trigger`. Each time the device does the thing (a button pressed, a door bell rung) the producer publishes **one occurrence**, one of `options` as a string. The occurrence *is* the time it happened; there is no timestamp, no state to recover, and the same kind twice in a row is two occurrences. |
 
 A value the device is not currently reporting is *absent*, never a placeholder.
 
@@ -168,6 +170,7 @@ Driver::handle(now, Input) -> Vec<Output>
 | `Descriptor(desc)` | the device's description (emit on connect and when it changes) |
 | `Value { prop, value }` | a property now has this value |
 | `Absent { prop }` | a property no longer has a value |
+| `Event { prop, kind }` | an `event` property happened once |
 | `SendFrame(bytes)` / `SendMessage { channel, json }` | write to the device |
 | `SetTimer { name, after }` / `CancelTimer(name)` | schedule or cancel a wake-up |
 | `Reject { prop, reason }` | a command could not be honoured |
@@ -212,6 +215,65 @@ Registry (grows with each device):
 | `swing_vertical` | binary | vertical air-flow sweep on / off |
 | `swing_horizontal` | binary | horizontal air-flow sweep on / off |
 | `action` | select | what a climate device is doing now; the options are the device's own (`off`, `idle`, `cooling`, …), read only |
+| `brightness` | number | light level, percent, `0`..`100`. A device with a lowest usable level says so in `min` (Tuya's 10 of 1000 is `min: 1`); the producer does the scaling |
+| `color_temperature` | number | white colour temperature in kelvin (`unit: "K"`), with the device's own `min`/`max`; warmer is lower. The producer converts from mireds or a device scale |
+| `color` | text | colour as `#rrggbb` at full brightness (brightness is its own property, so hue and saturation survive a dimmer). One property, so a colour change is one atomic write |
+| `color_mode` | select | which of the light's modes is showing: `white` (`color_temperature`) or `color` (`color`); other tokens (`scene`, `music`) are the device's own. A consumer only reads it: writing `color` or `color_temperature` switches the mode |
+| `position` | number | how far a cover is open, percent, `100` fully open, `0` fully closed. A device whose wire counts the other way is inverted by the producer |
+| `tilt` | number | slat angle of a cover, percent, `0`..`100`, `100` fully open |
+| `motion` | select | what a cover is doing now: `opening`, `closing`, `stopped`; read only |
+| `open` `close` `stop` | trigger | move a cover fully open, fully closed, or halt it |
+| `locked` | binary | a lock's bolt: `true` locked, `false` unlocked. `rw` only if the producer allows remote locking (see below) |
+| `unlatch` | trigger | release a lock's latch without leaving it unlocked (open the door) |
+| `opened` | binary | a valve: `true` open, `false` closed. Read-only unless the owner allows remote operation, as for `locked` |
+
+#### Lights, covers and locks
+
+Each is a device `kind` (`light`, `cover`, `lock`, `valve`, `siren`; a siren is `on` and nothing more) whose roles are used together; `class`
+refines it (`curtain`, `blind`, `garage_door`, `gate`, `door_lock`). The vocabulary was
+taken from what Tuya's standard instruction set (`switch_led`, `bright_value`, `temp_value`,
+`colour_data`, `control`, `percent_control`, `lock_motor_state`), Matter (`OnOff`,
+`LevelControl`, `ColorControl`, `WindowCovering`, `DoorLock`) and Home Assistant all share.
+Rules that keep the model small:
+
+- **A light is `on` plus whichever of `brightness`, `color_temperature`, `color` it has.**
+  A consumer derives the supported modes from which roles are present: none is on/off only.
+  Effects and scenes are an ordinary `select` without a role until two devices agree.
+- **Positions are normalised by the producer** to percent with `100` open, whatever the
+  wire, its `control_back_mode` or the consumer (Matter counts `0` as open) does.
+- **A cover with no `position` is fine**: `open`, `close` and `stop` alone. A cover with
+  `position` and no `open`/`close` is opened by writing `100` / `0`.
+- **Locks are the dangerous case.** A producer publishes `locked` read only unless the
+  owner has asked for remote control; unlocking is never implied by a role's presence.
+  Fault and door-open state are properties with `class: "problem"` / `"door"`, not roles.
+  A `requires` may tie `locked` to a property the device reports when remote operation is
+  allowed.
+
+#### More than one composite on a device
+
+A device has one `kind`, which is the composite made of its properties **outside any kinded
+group**. A device that is also something else (a curtain motor with a light, a fan with a
+light, a humidifier with a fan, two lights on one relay board) declares each extra composite as
+a group with a `kind`, and puts that composite's properties in the group:
+
+```json
+"kind": "cover",
+"groups": { "light": { "kind": "light", "label": "Light" } },
+"props": {
+  "position":   { "type": "number", "rw": true, "role": "position", "unit": "%", "min": 0, "max": 100 },
+  "switch_led": { "type": "binary", "rw": true, "role": "on",         "group": "light" },
+  "brightness": { "type": "number", "rw": true, "role": "brightness", "group": "light", "unit": "%", "min": 1, "max": 100 }
+}
+```
+
+- Roles are looked up **within the composite's own properties**, so two lights each have their
+  own `on`. A role is not shared across composites.
+- A consumer names the group's composite after the group's `label` (its own name for the
+  device's main composite is the device's).
+- A descriptor without `groups` means exactly what it meant before; a consumer that does not
+  know `groups` ignores it and builds the main composite from every property, as it did.
+- A kinded group whose properties do not form that kind's composite (a light without `on`)
+  is not one: its properties are plain properties.
 
 How a consumer maps roles to its own concepts is outside the IL; a starting point is in
 [il-consumers.md](il-consumers.md).
@@ -400,6 +462,12 @@ What the tenth device changed:
 
 ### Changelog
 
+- `0` (draft): descriptor field `groups`: a group with a `kind` is a composite of its own, so a
+  device can be a cover and a light, or have two lights (13 of 285 Tuya fixture devices did).
+
+- `0` (draft, unreleased addition): roles for lights (`brightness`, `color_temperature`,
+  `color`, `color_mode`), covers (`position`, `tilt`, `motion`, `open`, `close`, `stop`) and
+  locks (`locked`, `unlatch`), added ahead of the first Tuya producer (rustuya).
 - `0` (draft; drivers for all ten appliances of the first installation; roles `fan_speed`, `current_temperature`, `target_temperature`, `swing_vertical`, `swing_horizontal`, `action`, type `trigger` and fields `requires`, `class`, `series`, `category` added along the way): descriptor with typed properties, roles registry, `group`, `src`, `x-`
   extension prefix, availability as a role, sans-IO driver interface. No transport in
   the model.
@@ -422,4 +490,7 @@ IL.
 
 - Whether a driver is written as Rhai returning `Output` values, as native Rust, or both
   behind the same interface. The interface allows either.
-- Whether `group` is enough for multi-component devices or needs a real nested form.
+- Whether `group` is enough for multi-component devices or needs a real nested form. For
+  devices with several composites, `groups` with a `kind` is the answer so far (found by the
+  Tuya spike, see [notes/tuya-spike-gaps.md](notes/tuya-spike-gaps.md)); a nested form is not
+  needed yet.

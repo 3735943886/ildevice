@@ -12,6 +12,7 @@ This document says only how IL data is carried on MQTT. It adds nothing to the m
 |---|---|---|---|
 | descriptor | `<il_prefix>/<id>` | yes | the descriptor as JSON; an **empty** payload removes the device |
 | property value | see "Locating values" | yes | the value: `true`/`false`, a JSON number, or a string |
+| event occurrence | see "Locating values" | **no** | one of the property's `options`. A consumer ignores a retained message on an `event` topic: it is an old occurrence the broker replays, not a new one |
 | property write | see "Locating values" | no | the same forms |
 
 `il_prefix` defaults to `il` and is the one thing a consumer must be configured with.
@@ -48,6 +49,7 @@ If `x-mqtt` is absent the defaults are `<il_prefix>/<id>/<prop>`,
 | `Descriptor` | publish (retained) the descriptor |
 | `Value { prop, value }` | publish (retained) the value on the state topic |
 | `Absent { prop }` | publish an empty retained payload on the state topic |
+| `Event { prop, kind }` | publish `kind` on the state topic, **not retained**. Every message is one occurrence, including a repeat of the same kind |
 | `Reject { prop, reason }` | publish `{ "prop", "reason" }` (not retained) on the `reject` topic from `x-mqtt`, default `<il_prefix>/<id>/reject` |
 
 | MQTT | IL input |

@@ -48,6 +48,23 @@
       "additionalProperties": {
         "$ref": "#/$defs/property"
       }
+    },
+    "groups": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "class": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "patternProperties": {
