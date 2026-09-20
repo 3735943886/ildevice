@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IL descriptor (version 0)",
+  "type": "object",
+  "required": [
+    "il",
+    "id",
+    "props"
+  ],
+  "properties": {
+    "il": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "class": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "vendor": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "identifiers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "props": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/property"
+      }
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "property": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "rw": {
+          "type": "boolean"
+        },
+        "role": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "label": {
+          "type": "string"
+        },
+        "src": {},
+        "requires": {
+          "type": "string"
+        },
+        "class": {
+          "type": "string"
+        },
+        "series": {
+          "enum": [
+            "gauge",
+            "counter"
+          ]
+        },
+        "category": {
+          "enum": [
+            "diagnostic",
+            "config"
+          ]
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

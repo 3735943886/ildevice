@@ -1,0 +1,77 @@
+{
+  "il": 0,
+  "id": "00000000-0000-0000-0000-000000000000",
+  "source": "rusthinq",
+  "kind": "humidifier",
+  "class": "dehumidifier",
+  "label": "Dehumidifier",
+  "vendor": "LG",
+  "model": "DHUM_056905_WW",
+  "identifiers": {
+    "thinq_id": "00000000-0000-0000-0000-000000000000"
+  },
+  "props": {
+    "available": {
+      "type": "binary",
+      "role": "available"
+    },
+    "power": {
+      "type": "binary",
+      "rw": true,
+      "role": "on"
+    },
+    "mode": {
+      "type": "select",
+      "rw": true,
+      "role": "mode",
+      "options": [
+        "smart",
+        "jet",
+        "silent",
+        "spot",
+        "laundry"
+      ]
+    },
+    "target": {
+      "type": "number",
+      "rw": true,
+      "role": "target_humidity",
+      "min": 30,
+      "max": 70,
+      "step": 1,
+      "unit": "%"
+    },
+    "humidity": {
+      "type": "number",
+      "role": "current_humidity",
+      "unit": "%"
+    },
+    "fan": {
+      "type": "select",
+      "rw": true,
+      "options": [
+        "low",
+        "high"
+      ],
+      "role": "fan_speed"
+    },
+    "tank_full": {
+      "type": "binary"
+    },
+    "uvnano": {
+      "type": "binary",
+      "rw": true,
+      "src": {
+        "tlv_tag": "0x2a2"
+      }
+    },
+    "tank_state": {
+      "type": "select",
+      "options": [
+        "not_full",
+        "full_stopped",
+        "full_fan_mode"
+      ]
+    }
+  }
+}
