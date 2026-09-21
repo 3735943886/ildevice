@@ -13,6 +13,9 @@ property's `type`, `unit`, `min`/`max`/`step` and `options`).
 | `on` | on/off | `on_off.on_off` |
 | `mode` | `climate.hvac_mode` / `humidifier.mode` / fan preset mode | no standard attribute |
 | `fan_speed` | fan preset mode | `fan_control.fan_mode` |
+| `speed` | `fan.percentage` | `fan_control.percent_setting` |
+| `oscillate` | `fan.oscillating` | `fan_control.rock_setting` |
+| `direction` | `fan.direction` | `fan_control.airflow_direction` |
 | `target_humidity` | `humidifier.target_humidity` | no standard attribute |
 | `current_humidity` | `humidifier.current_humidity` | `relative_humidity_measurement.measured_value` |
 | `current_temperature` | `climate.current_temperature` | `thermostat.local_temperature` |

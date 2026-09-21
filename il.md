@@ -287,7 +287,10 @@ Access: `ro` read only; `rw` writable, and a producer MUST NOT declare it read o
 | `available` | binary | ro | | device reachable |
 | `on` | binary | rw | | main power |
 | `mode` | select | rw | device's own | operating mode |
-| `fan_speed` | select | rw | device's own | fan speed or strength |
+| `fan_speed` | select | rw | device's own | fan speed or strength as named levels |
+| `speed` | number | rw | `%`, `1`..`100` | fan speed as a continuous percentage, for a device that takes a number. A fan may have both `fan_speed` and `speed`; a consumer prefers `speed` |
+| `oscillate` | binary | rw | | fan oscillation on / off |
+| `direction` | select | rw | `forward`, `reverse` | airflow direction of a fan |
 | `target_humidity` | number | rw | `%` | humidity setpoint |
 | `current_humidity` | number | ro | `%` | measured relative humidity |
 | `current_temperature` | number | ro | `°C` | measured room temperature |
@@ -337,7 +340,7 @@ properties are only plain properties.
 | `switch` | `on` | |
 | `climate` | `target_temperature` | `on`, `mode`, `fan_speed`, `current_temperature`, `current_humidity`, `swing_vertical`, `swing_horizontal`, `action` |
 | `humidifier` | `on`, `target_humidity` | `mode`, `fan_speed`, `current_humidity`, `current_temperature` |
-| `fan` | `on` | `mode`, `fan_speed` |
+| `fan` | `on` | `mode`, `fan_speed`, `speed`, `oscillate`, `direction` |
 | `alarm` | `alarm_state` | `arm_home`, `arm_away`, `arm_night`, `disarm` |
 | `vacuum` | `vacuum_state` | `start`, `pause`, `return_home`, `locate`, `fan_speed`, `battery` |
 

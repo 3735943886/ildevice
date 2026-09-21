@@ -224,3 +224,11 @@ proposals. Each is a default that a later device can overturn by the rules of se
   a device that needs one.
 - Conformance vectors so far cover command validation only ([vectors/](vectors/)); driver
   input/output sequences wait for a first driver's captured frames.
+
+## Fan roles `speed`, `oscillate`, `direction`
+
+Found by comparing a Tuya producer with Home Assistant core's tuya fans: a fan there is one entity with a
+percentage, an oscillation switch and a direction. The IL had only the select `fan_speed`, so a producer had to
+publish the three as unrelated properties and a consumer showed them as three extra entities beside the fan.
+`speed` (number, percent), `oscillate` (binary) and `direction` (select, `forward`/`reverse`) are optional roles of
+the `fan` kind; `fan_speed` stays for devices whose speeds are named levels.
