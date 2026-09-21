@@ -1,0 +1,56 @@
+{
+  "il": 0,
+  "id": "00000000-0000-0000-0000-000000000000",
+  "source": "rustuya",
+  "kind": "cover",
+  "class": "curtain",
+  "label": "Curtain",
+  "identifiers": {
+    "tuya_id": "example0000000000000"
+  },
+  "groups": {
+    "light": {
+      "kind": "light",
+      "label": "Light"
+    }
+  },
+  "props": {
+    "position": {
+      "type": "number",
+      "rw": true,
+      "role": "position",
+      "unit": "%",
+      "min": 0,
+      "max": 100,
+      "step": 1
+    },
+    "open": {
+      "type": "trigger",
+      "role": "open"
+    },
+    "close": {
+      "type": "trigger",
+      "role": "close"
+    },
+    "stop": {
+      "type": "trigger",
+      "role": "stop"
+    },
+    "switch_led": {
+      "type": "binary",
+      "rw": true,
+      "role": "on",
+      "group": "light"
+    },
+    "brightness": {
+      "type": "number",
+      "rw": true,
+      "role": "brightness",
+      "group": "light",
+      "unit": "%",
+      "min": 1,
+      "max": 100,
+      "step": 1
+    }
+  }
+}

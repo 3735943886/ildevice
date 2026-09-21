@@ -1,0 +1,117 @@
+{
+  "il": 0,
+  "id": "00000000-0000-0000-0000-000000000000",
+  "source": "rusthinq",
+  "kind": "climate",
+  "class": "air_conditioner",
+  "label": "Air conditioner",
+  "vendor": "LG",
+  "model": "CST_570004_WW",
+  "identifiers": {
+    "thinq_id": "00000000-0000-0000-0000-000000000000"
+  },
+  "props": {
+    "available": {
+      "type": "binary",
+      "role": "available"
+    },
+    "power": {
+      "type": "binary",
+      "rw": true,
+      "role": "on"
+    },
+    "mode": {
+      "type": "select",
+      "rw": true,
+      "role": "mode",
+      "options": [
+        "cool",
+        "dry",
+        "fan_only",
+        "auto"
+      ]
+    },
+    "fan": {
+      "type": "select",
+      "rw": true,
+      "role": "fan_speed",
+      "options": [
+        "auto",
+        "very_low",
+        "low",
+        "medium",
+        "high",
+        "power"
+      ]
+    },
+    "target": {
+      "type": "number",
+      "rw": true,
+      "role": "target_temperature",
+      "min": 16,
+      "max": 30,
+      "step": 0.5,
+      "unit": "°C"
+    },
+    "temperature": {
+      "type": "number",
+      "role": "current_temperature",
+      "unit": "°C",
+      "class": "temperature"
+    },
+    "humidity": {
+      "type": "number",
+      "role": "current_humidity",
+      "unit": "%",
+      "class": "humidity"
+    },
+    "action": {
+      "type": "select",
+      "role": "action",
+      "options": [
+        "off",
+        "idle",
+        "cooling",
+        "drying",
+        "fan",
+        "active"
+      ]
+    },
+    "swing_vertical": {
+      "type": "binary",
+      "rw": true,
+      "role": "swing_vertical"
+    },
+    "swing_horizontal": {
+      "type": "binary",
+      "rw": true,
+      "role": "swing_horizontal"
+    },
+    "energy_save": {
+      "type": "binary",
+      "rw": true,
+      "category": "config"
+    },
+    "sleep_timer": {
+      "type": "number",
+      "rw": true,
+      "unit": "min",
+      "min": 0,
+      "max": 420,
+      "step": 60,
+      "category": "config",
+      "class": "duration"
+    },
+    "power_draw": {
+      "type": "number",
+      "unit": "W",
+      "series": "gauge",
+      "category": "diagnostic",
+      "class": "power"
+    },
+    "error": {
+      "type": "number",
+      "category": "diagnostic"
+    }
+  }
+}

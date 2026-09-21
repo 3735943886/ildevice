@@ -1,0 +1,37 @@
+{
+  "il": 0,
+  "id": "00000000-0000-0000-0000-000000000000",
+  "source": "rustuya",
+  "kind": "lock",
+  "class": "door_lock",
+  "label": "Front door",
+  "props": {
+    "available": {
+      "type": "binary",
+      "role": "available"
+    },
+    "remote_allowed": {
+      "type": "binary"
+    },
+    "locked": {
+      "type": "binary",
+      "rw": true,
+      "role": "locked",
+      "requires": "remote_allowed"
+    },
+    "unlatch": {
+      "type": "trigger",
+      "role": "unlatch",
+      "requires": "remote_allowed"
+    },
+    "door_open": {
+      "type": "binary",
+      "class": "door"
+    },
+    "battery": {
+      "type": "number",
+      "unit": "%",
+      "category": "diagnostic"
+    }
+  }
+}

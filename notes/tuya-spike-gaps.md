@@ -49,8 +49,8 @@ with two lights).
 
 ## Status after the first change
 
-Gap 2 is done in the draft: `il.md` (descriptor field `groups`, section "More than one composite on
-a device"), `schema/descriptor.schema.json`, and il_ha's `plan.py` (a kinded group is planned as its
+Gap 2 is done in the draft: `il.md` (descriptor field `groups`, section 10 "Kinds and
+composites", subsection Groups), `schema/descriptor.schema.json`, and il_ha's `plan.py` (a kinded group is planned as its
 own composite; 4 new tests). Re-running the spike: the light-count differences (`clkg`,
 `dj_hpc8ddyfv85haxa7`) and the `kt` stray switch are gone; the remaining differences are gaps 3-7.
 Not yet exercised: fan + humidifier / fan + light (the spike does not emit fan or humidifier

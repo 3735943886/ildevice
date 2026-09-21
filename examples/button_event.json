@@ -1,0 +1,21 @@
+{
+  "il": 0,
+  "id": "00000000-0000-0000-0000-000000000000",
+  "source": "rustuya",
+  "kind": "remote",
+  "label": "Scene button",
+  "props": {
+    "available": {
+      "type": "binary",
+      "role": "available"
+    },
+    "press": {
+      "type": "event",
+      "options": [
+        "single",
+        "double",
+        "long"
+      ]
+    }
+  }
+}
