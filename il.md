@@ -333,7 +333,7 @@ properties are only plain properties.
 | kind | required roles | optional roles |
 |---|---|---|
 | `light` | `on` | `brightness`, `color_temperature`, `color`, `color_mode` |
-| `cover` | `position`, or `open` and `close` | `tilt`, `motion`, `stop`, `open`, `close`, `position` |
+| `cover` | `position`, or `open`, or `close` | `tilt`, `motion`, `stop`, `open`, `close`, `position` |
 | `lock` | `locked` | `unlatch` |
 | `valve` | `opened` | |
 | `siren` | `on` | |
@@ -351,7 +351,8 @@ properties are only plain properties.
 - **K-1** A light is `on` plus whichever of `brightness`, `color_temperature`, `color` it has; a
   consumer derives the supported modes from which roles are present, and none is on/off only.
   Effects and scenes are an ordinary `select` without a role until two devices agree.
-- **K-2** A cover with no `position` is fine: `open`, `close` and `stop` alone. A cover with
+- **K-2** A cover with no `position` is fine: `open`, `close` and `stop` alone, or just one of `open` and `close` (a garage
+  opener whose remote only opens it). A cover with
   `position` and no `open`/`close` is opened by writing `100` and closed by writing `0`.
 - **K-3** Roles are looked up **within the composite's own properties**; a role is not shared across
   composites.

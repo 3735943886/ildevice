@@ -13,7 +13,7 @@ has, and which of them can be written. Specification only; no code in any langua
 - [il-mqtt.md](il-mqtt.md): one transport mapping, MQTT.
 - [schema/descriptor.schema.json](schema/descriptor.schema.json): JSON Schema of the descriptor
   (structure, type/role consistency); [schema/message.schema.json](schema/message.schema.json): the messages.
-- [vectors/](vectors/): language-neutral conformance vectors (command validation so far).
+- [vectors/](vectors/): language-neutral conformance vectors: command validation (`commands.json`), payloads on the wire (`wire-values.json`), topics (`topics.json`), composites (`composites.json`).
 
 **Informative**
 

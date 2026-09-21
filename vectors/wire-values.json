@@ -1,0 +1,54 @@
+{
+  "description": "Payloads on the wire for il-mqtt.md section 3 (UTF-8, strings not JSON-quoted). `state_encode`: what a producer publishes for a value. `state_decode`: what a consumer must read from a state payload (null = absent, il.md V-1/V-2; an empty payload is absent, M-10). `write_encode`: what a consumer sends to a set topic for a value. `write_decode`: the value a producer must take from a set payload (before its section 5 checks).",
+  "state_encode": [
+    {"type": "binary", "value": true,  "payload": "true"},
+    {"type": "binary", "value": false, "payload": "false"},
+    {"type": "number", "value": 50,    "payload": "50"},
+    {"type": "number", "value": 50.0,  "payload": "50", "note": "an integral value has no fraction (M section 3, V-5)"},
+    {"type": "number", "value": 0,     "payload": "0"},
+    {"type": "number", "value": -3,    "payload": "-3"},
+    {"type": "number", "value": 21.5,  "payload": "21.5"},
+    {"type": "number", "value": 0.25,  "payload": "0.25"},
+    {"type": "select", "value": "smart", "payload": "smart"},
+    {"type": "select", "value": "two words", "payload": "two words"},
+    {"type": "text",   "value": "say \"hi\"", "payload": "say \"hi\"", "note": "not wrapped in quotes"},
+    {"type": "text",   "value": "#ff8800", "payload": "#ff8800"},
+    {"type": "event",  "value": "single_click", "payload": "single_click"}
+  ],
+  "state_decode": [
+    {"type": "binary", "payload": "true",  "value": true},
+    {"type": "binary", "payload": "false", "value": false},
+    {"type": "binary", "payload": "",      "value": null},
+    {"type": "number", "payload": "50",    "value": 50},
+    {"type": "number", "payload": "-3",    "value": -3},
+    {"type": "number", "payload": "21.5",  "value": 21.5},
+    {"type": "number", "payload": "",      "value": null},
+    {"type": "select", "payload": "smart", "value": "smart"},
+    {"type": "select", "payload": "two words", "value": "two words"},
+    {"type": "select", "payload": "",      "value": null},
+    {"type": "text",   "payload": "say \"hi\"", "value": "say \"hi\""},
+    {"type": "text",   "payload": "",      "value": null}
+  ],
+  "write_encode": [
+    {"type": "binary", "value": true,  "payload": "true"},
+    {"type": "binary", "value": false, "payload": "false"},
+    {"type": "number", "value": 55,    "payload": "55"},
+    {"type": "number", "value": 22.5,  "payload": "22.5"},
+    {"type": "select", "value": "jet", "payload": "jet"},
+    {"type": "text",   "value": "hello", "payload": "hello"}
+  ],
+  "write_decode": [
+    {"type": "binary", "payload": "true",  "value": true},
+    {"type": "binary", "payload": "false", "value": false},
+    {"type": "binary", "payload": "on",    "value": true},
+    {"type": "binary", "payload": "off",   "value": false},
+    {"type": "binary", "payload": "1",     "value": true},
+    {"type": "binary", "payload": "0",     "value": false},
+    {"type": "number", "payload": "55",    "value": 55},
+    {"type": "number", "payload": "22.5",  "value": 22.5},
+    {"type": "select", "payload": "jet",   "value": "jet"},
+    {"type": "text",   "payload": "hello", "value": "hello"},
+    {"type": "trigger", "payload": "",     "value": null},
+    {"type": "trigger", "payload": "anything", "value": null}
+  ]
+}

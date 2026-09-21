@@ -1,0 +1,726 @@
+{
+  "description": "Which composites a consumer forms from a descriptor (il.md section 10, K-1..K-4, G-1..G-5, O-5, X-1). For each case: `composites` lists the composites that MUST form, in any order, as {kind, group (null for the device's own), roles: the required roles with the property carrying each, optional: roles the consumer MAY also use}. A consumer's composite for that kind and group MUST contain every entry of `roles` and MAY add only entries of `optional`. `no_composite` lists kinds (of the device or of a group) that MUST NOT form one. What entity a consumer builds from a composite is its own business. A descriptor is valid against the schema unless its case says `schema_valid: false` (it is there to test a consumer's tolerance).",
+  "cases": [
+    {
+      "name": "a light is on plus whichever level roles it has (K-1)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "light",
+        "props": {
+          "pw": {
+            "type": "binary",
+            "rw": true,
+            "role": "on"
+          },
+          "br": {
+            "type": "number",
+            "rw": true,
+            "role": "brightness",
+            "unit": "%",
+            "min": 1,
+            "max": 100
+          },
+          "ct": {
+            "type": "number",
+            "rw": true,
+            "role": "color_temperature",
+            "unit": "K",
+            "min": 2700,
+            "max": 6500
+          },
+          "fx": {
+            "type": "select",
+            "rw": true,
+            "options": [
+              "a",
+              "b"
+            ]
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "light",
+          "group": null,
+          "roles": {
+            "on": "pw"
+          },
+          "optional": {
+            "brightness": "br",
+            "color_temperature": "ct"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a light without `on` has no composite (K-4)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "light",
+        "props": {
+          "br": {
+            "type": "number",
+            "rw": true,
+            "role": "brightness",
+            "unit": "%",
+            "min": 1,
+            "max": 100
+          }
+        }
+      },
+      "composites": [],
+      "no_composite": [
+        {
+          "kind": "light"
+        }
+      ]
+    },
+    {
+      "name": "a cover with position only (K-2)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "cover",
+        "props": {
+          "pos": {
+            "type": "number",
+            "rw": true,
+            "role": "position",
+            "unit": "%",
+            "min": 0,
+            "max": 100
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "cover",
+          "group": null,
+          "roles": {
+            "position": "pos"
+          },
+          "optional": {}
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a cover with open and close and no position (K-2)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "cover",
+        "props": {
+          "o": {
+            "type": "trigger",
+            "role": "open"
+          },
+          "c": {
+            "type": "trigger",
+            "role": "close"
+          },
+          "s": {
+            "type": "trigger",
+            "role": "stop"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "cover",
+          "group": null,
+          "roles": {
+            "open": "o",
+            "close": "c"
+          },
+          "optional": {
+            "stop": "s"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a cover with just one direction is still a cover (K-2)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "cover",
+        "props": {
+          "o": {
+            "type": "trigger",
+            "role": "open"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "cover",
+          "group": null,
+          "roles": {
+            "open": "o"
+          },
+          "optional": {}
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a climate needs target_temperature",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "climate",
+        "props": {
+          "pw": {
+            "type": "binary",
+            "rw": true,
+            "role": "on"
+          },
+          "m": {
+            "type": "select",
+            "rw": true,
+            "role": "mode",
+            "options": [
+              "cool",
+              "heat"
+            ]
+          },
+          "t": {
+            "type": "number",
+            "rw": true,
+            "role": "target_temperature",
+            "unit": "°C",
+            "min": 16,
+            "max": 30,
+            "step": 1
+          },
+          "cur": {
+            "type": "number",
+            "role": "current_temperature",
+            "unit": "°C"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "climate",
+          "group": null,
+          "roles": {
+            "target_temperature": "t"
+          },
+          "optional": {
+            "on": "pw",
+            "mode": "m",
+            "current_temperature": "cur"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a climate without target_temperature has no composite (K-4)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "climate",
+        "props": {
+          "pw": {
+            "type": "binary",
+            "rw": true,
+            "role": "on"
+          },
+          "m": {
+            "type": "select",
+            "rw": true,
+            "role": "mode",
+            "options": [
+              "cool",
+              "heat"
+            ]
+          }
+        }
+      },
+      "composites": [],
+      "no_composite": [
+        {
+          "kind": "climate"
+        }
+      ]
+    },
+    {
+      "name": "a humidifier needs on and target_humidity",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "humidifier",
+        "props": {
+          "pw": {
+            "type": "binary",
+            "rw": true,
+            "role": "on"
+          },
+          "th": {
+            "type": "number",
+            "rw": true,
+            "role": "target_humidity",
+            "unit": "%",
+            "min": 30,
+            "max": 70,
+            "step": 1
+          },
+          "ch": {
+            "type": "number",
+            "role": "current_humidity",
+            "unit": "%"
+          },
+          "m": {
+            "type": "select",
+            "rw": true,
+            "role": "mode",
+            "options": [
+              "auto"
+            ]
+          }
+        },
+        "class": "dehumidifier"
+      },
+      "composites": [
+        {
+          "kind": "humidifier",
+          "group": null,
+          "roles": {
+            "on": "pw",
+            "target_humidity": "th"
+          },
+          "optional": {
+            "current_humidity": "ch",
+            "mode": "m"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a humidifier without target_humidity has no composite (K-4)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "humidifier",
+        "props": {
+          "pw": {
+            "type": "binary",
+            "rw": true,
+            "role": "on"
+          }
+        }
+      },
+      "composites": [],
+      "no_composite": [
+        {
+          "kind": "humidifier"
+        }
+      ]
+    },
+    {
+      "name": "a fan is on plus its speed roles",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "fan",
+        "props": {
+          "pw": {
+            "type": "binary",
+            "rw": true,
+            "role": "on"
+          },
+          "sp": {
+            "type": "number",
+            "rw": true,
+            "role": "speed",
+            "unit": "%",
+            "min": 1,
+            "max": 100
+          },
+          "osc": {
+            "type": "binary",
+            "rw": true,
+            "role": "oscillate"
+          },
+          "dr": {
+            "type": "select",
+            "rw": true,
+            "role": "direction",
+            "options": [
+              "forward",
+              "reverse"
+            ]
+          },
+          "lv": {
+            "type": "select",
+            "rw": true,
+            "role": "fan_speed",
+            "options": [
+              "low",
+              "high"
+            ]
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "fan",
+          "group": null,
+          "roles": {
+            "on": "pw"
+          },
+          "optional": {
+            "speed": "sp",
+            "oscillate": "osc",
+            "direction": "dr",
+            "fan_speed": "lv"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a role with the wrong type is no role (O-5)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "light",
+        "props": {
+          "pw": {
+            "type": "select",
+            "rw": true,
+            "role": "on",
+            "options": [
+              "x"
+            ]
+          },
+          "br": {
+            "type": "binary",
+            "rw": true,
+            "role": "brightness"
+          }
+        }
+      },
+      "composites": [],
+      "no_composite": [
+        {
+          "kind": "light"
+        }
+      ],
+      "schema_valid": false
+    },
+    {
+      "name": "an unknown kind and an unknown role are ignored (X-1)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "washer",
+        "props": {
+          "pw": {
+            "type": "binary",
+            "rw": true,
+            "role": "on"
+          },
+          "z": {
+            "type": "number",
+            "role": "frobnicate"
+          }
+        }
+      },
+      "composites": [],
+      "no_composite": [
+        {
+          "kind": "washer"
+        }
+      ]
+    },
+    {
+      "name": "an alarm panel",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "alarm",
+        "props": {
+          "st": {
+            "type": "select",
+            "role": "alarm_state",
+            "options": [
+              "disarmed",
+              "armed_home"
+            ]
+          },
+          "ah": {
+            "type": "trigger",
+            "rw": true,
+            "role": "arm_home"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "alarm",
+          "group": null,
+          "roles": {
+            "alarm_state": "st"
+          },
+          "optional": {
+            "arm_home": "ah"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a vacuum",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "vacuum",
+        "props": {
+          "st": {
+            "type": "select",
+            "role": "vacuum_state",
+            "options": [
+              "cleaning",
+              "docked"
+            ]
+          },
+          "go": {
+            "type": "trigger",
+            "rw": true,
+            "role": "start"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "vacuum",
+          "group": null,
+          "roles": {
+            "vacuum_state": "st"
+          },
+          "optional": {
+            "start": "go"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a writable lock and a writable valve",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "lock",
+        "props": {
+          "lk": {
+            "type": "binary",
+            "rw": true,
+            "role": "locked"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "lock",
+          "group": null,
+          "roles": {
+            "locked": "lk"
+          },
+          "optional": {}
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a kinded group is a composite of its own and the main composite leaves its properties out (G-1)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "cover",
+        "props": {
+          "pos": {
+            "type": "number",
+            "rw": true,
+            "role": "position",
+            "unit": "%",
+            "min": 0,
+            "max": 100
+          },
+          "led": {
+            "type": "binary",
+            "rw": true,
+            "role": "on",
+            "group": "light"
+          },
+          "br": {
+            "type": "number",
+            "rw": true,
+            "role": "brightness",
+            "group": "light",
+            "unit": "%",
+            "min": 1,
+            "max": 100
+          }
+        },
+        "groups": {
+          "light": {
+            "kind": "light",
+            "label": "Light"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "cover",
+          "group": null,
+          "roles": {
+            "position": "pos"
+          },
+          "optional": {}
+        },
+        {
+          "kind": "light",
+          "group": "light",
+          "roles": {
+            "on": "led"
+          },
+          "optional": {
+            "brightness": "br"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "two groups of one kind are looked up separately (G-2, K-3)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "light",
+        "props": {
+          "a_on": {
+            "type": "binary",
+            "rw": true,
+            "role": "on",
+            "group": "a"
+          },
+          "a_br": {
+            "type": "number",
+            "rw": true,
+            "role": "brightness",
+            "group": "a",
+            "unit": "%",
+            "min": 1,
+            "max": 100
+          },
+          "b_on": {
+            "type": "binary",
+            "rw": true,
+            "role": "on",
+            "group": "b"
+          }
+        },
+        "groups": {
+          "a": {
+            "kind": "light"
+          },
+          "b": {
+            "kind": "light"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "light",
+          "group": "a",
+          "roles": {
+            "on": "a_on"
+          },
+          "optional": {
+            "brightness": "a_br"
+          }
+        },
+        {
+          "kind": "light",
+          "group": "b",
+          "roles": {
+            "on": "b_on"
+          },
+          "optional": {}
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a group without a kind is only a label (G-5)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "light",
+        "props": {
+          "pw": {
+            "type": "binary",
+            "rw": true,
+            "role": "on"
+          },
+          "br": {
+            "type": "number",
+            "rw": true,
+            "role": "brightness",
+            "unit": "%",
+            "min": 1,
+            "max": 100,
+            "group": "ch1"
+          }
+        },
+        "groups": {
+          "ch1": {
+            "label": "Channel 1"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "light",
+          "group": null,
+          "roles": {
+            "on": "pw"
+          },
+          "optional": {
+            "brightness": "br"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a cover with only a stop has no composite (K-4)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "cover",
+        "props": {
+          "s": {
+            "type": "trigger",
+            "role": "stop"
+          }
+        }
+      },
+      "composites": [],
+      "no_composite": [
+        {
+          "kind": "cover"
+        }
+      ]
+    }
+  ]
+}

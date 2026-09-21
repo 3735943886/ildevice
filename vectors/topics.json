@@ -1,0 +1,48 @@
+{
+  "description": "Where values live, il-mqtt.md sections 1-2. `layouts`: a descriptor (only its id, its `x-mqtt` and its props matter), the il_prefix, and the topics a consumer must use. `presence`: M-12. `device_ids`: ids a producer may (M-2) and may not use with the default layout.",
+  "layouts": [
+    {
+      "name": "defaults (M-7)",
+      "il_prefix": "il",
+      "descriptor": {"il": 0, "id": "dev1", "props": {"power": {"type": "binary", "rw": true}, "temp": {"type": "number"}, "go": {"type": "trigger"}}},
+      "state":  {"power": "il/dev1/power", "temp": "il/dev1/temp"},
+      "set":    {"power": "il/dev1/power/set", "go": "il/dev1/go/set"},
+      "reject": "il/dev1/reject"
+    },
+    {
+      "name": "another il_prefix",
+      "il_prefix": "home/il",
+      "descriptor": {"il": 0, "id": "dev1", "props": {"power": {"type": "binary", "rw": true}}},
+      "state":  {"power": "home/il/dev1/power"},
+      "set":    {"power": "home/il/dev1/power/set"},
+      "reject": "home/il/dev1/reject"
+    },
+    {
+      "name": "the descriptor's x-mqtt (M-5, M-6)",
+      "il_prefix": "il",
+      "descriptor": {"il": 0, "id": "dev1", "x-mqtt": {"state": "rusthinq/{id}/{prop}", "set": "rusthinq/{id}/{prop}/set", "reject": "rusthinq/{id}/reject"},
+                     "props": {"power": {"type": "binary", "rw": true}}},
+      "state":  {"power": "rusthinq/dev1/power"},
+      "set":    {"power": "rusthinq/dev1/power/set"},
+      "reject": "rusthinq/dev1/reject"
+    },
+    {
+      "name": "a property's own x-mqtt overrides the device's (M-6)",
+      "il_prefix": "il",
+      "descriptor": {"il": 0, "id": "dev1", "x-mqtt": {"state": "a/{id}/{prop}", "set": "a/{id}/{prop}/set"},
+                     "props": {"power": {"type": "binary", "rw": true, "x-mqtt": {"state": "b/{id}/{prop}/state", "set": "b/{id}/{prop}/cmd"}},
+                               "level": {"type": "number", "rw": true}}},
+      "state":  {"power": "b/dev1/power/state", "level": "a/dev1/level"},
+      "set":    {"power": "b/dev1/power/cmd", "level": "a/dev1/level/set"},
+      "reject": "il/dev1/reject"
+    }
+  ],
+  "presence": [
+    {"il_prefix": "il", "source": "tuya", "topic": "il/_producer/tuya"},
+    {"il_prefix": "home/il", "source": "rusthinq", "topic": "home/il/_producer/rusthinq"}
+  ],
+  "device_ids": {
+    "valid": ["dev1", "bf1234567890abcdef", "00000000-0000-0000-0000-000000000000", "a.b-c"],
+    "invalid": ["", "_hidden", "a/b", "a+b", "a#b", "a\u0000b"]
+  }
+}
