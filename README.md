@@ -10,6 +10,7 @@ has, and which of them can be written. Specification only; no code in any langua
 - [schema/descriptor.schema.json](schema/descriptor.schema.json): JSON Schema of the
   descriptor.
 - [examples/](examples/): example descriptors.
-- [notes/](notes/): informative notes (parity with an existing integration).
+- [notes/](notes/): informative notes (parity with an existing integration, gaps found by the
+  Tuya spike).
 
 Status: draft, version 0.

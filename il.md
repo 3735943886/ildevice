@@ -2,7 +2,8 @@
 
 > **Draft, version 0.** A specification shared by every project that turns a device into
 > data (rusthinq, rustuya, and consumers of either). It depends on no project, no
-> transport and no programming language. Nothing is implemented yet.
+> transport and no programming language. No code lives in this repository; the first drivers
+> (rusthinq) follow it from their own.
 
 The IL describes what a device *is*, what values it has, and which of them can be
 written, using no vocabulary of Home Assistant, Matter, Tuya, LG or any one consumer.
@@ -62,6 +63,8 @@ without a role, and is fully usable.
 }
 ```
 
+The example shows a subset of the device's properties (the full list is in section 5).
+
 | field | meaning |
 |---|---|
 | `il` | IL version the descriptor was written against (integer). |
@@ -83,7 +86,7 @@ never part of the model.
 |---|---|---|
 | `type` | all | `binary`, `number`, `select`, `text`, `trigger`, `event`. |
 | `rw` | all | `true` if the property accepts writes. Default `false`. |
-| `role` | all | Optional standard meaning, see section 4. |
+| `role` | all | Optional standard meaning, see section 3. |
 | `requires` | all | Optional name of a `binary` property that must currently be `true` for this property to accept writes (a control that only works while the panel has granted remote start). A consumer greys the control out otherwise; a producer still rejects a write made anyway. |
 | `group` | all | Optional string grouping properties of one sub-unit (`ch1`, `zone_a`) for devices with several of the same thing. If the device's `groups` gives the group a `kind`, the group is a composite of its own. |
 | `unit` | number | Plain-text unit label (`%`, `°C`, `min`). |
@@ -215,7 +218,7 @@ Registry (grows with each device):
 | `swing_vertical` | binary | vertical air-flow sweep on / off |
 | `swing_horizontal` | binary | horizontal air-flow sweep on / off |
 | `action` | select | what a climate device is doing now; the options are the device's own (`off`, `idle`, `cooling`, …), read only |
-| `brightness` | number | light level, percent, `0`..`100`. A device with a lowest usable level says so in `min` (Tuya's 10 of 1000 is `min: 1`); the producer does the scaling |
+| `brightness` | number | light level, percent, up to `100`. A device with a lowest usable level says so in `min` (Tuya's 10 of 1000 is `min: 1`); the producer does the scaling |
 | `color_temperature` | number | white colour temperature in kelvin (`unit: "K"`), with the device's own `min`/`max`; warmer is lower. The producer converts from mireds or a device scale |
 | `color` | text | colour as `#rrggbb` at full brightness (brightness is its own property, so hue and saturation survive a dimmer). One property, so a colour change is one atomic write |
 | `color_mode` | select | which of the light's modes is showing: `white` (`color_temperature`) or `color` (`color`); other tokens (`scene`, `music`) are the device's own. A consumer only reads it: writing `color` or `color_temperature` switches the mode |
@@ -227,7 +230,7 @@ Registry (grows with each device):
 | `unlatch` | trigger | release a lock's latch without leaving it unlocked (open the door) |
 | `opened` | binary | a valve: `true` open, `false` closed. Read-only unless the owner allows remote operation, as for `locked` |
 
-#### Lights, covers and locks
+#### Lights, covers, locks, valves and sirens
 
 Each is a device `kind` (`light`, `cover`, `lock`, `valve`, `siren`; a siren is `on` and nothing more) whose roles are used together; `class`
 refines it (`curtain`, `blind`, `garage_door`, `gate`, `door_lock`). The vocabulary was
@@ -331,7 +334,7 @@ means is to be settled on the real device. That is the intended way the IL is re
 
 `kind: "fan"`, `class: "air_purifier"`. Properties: `available`, `power` (`on`), `mode`
 (`mode`: circulator_clean, baby_care, dual_clean, auto), `fan` (`fan_speed`: low, mid, high,
-power, auto), `pm1`, `pm25`, `pm10` (µg/m³), `air_quality`, `odor` (1..4), `filter_life`,
+power, auto), `pm1`, `pm25`, `pm10` (μg/m³), `air_quality`, `odor` (1..4), `filter_life`,
 `top_filter_life` (percent, computed from two wire tags: hours left over the budget),
 `light`, `sterilize`, `sleep_timer` (min), `error`.
 
@@ -358,10 +361,9 @@ did not care about: `status`, `tap_uv`, `water_selection`, `water_amount` (selec
   carries without a year, in UTC). It stays: nothing else in the model fits a date-like
   value, and turning it into local time is a consumer's job (it needs a calendar and a
   timezone), so the driver reports it as it is.
-- **Proposed, not in the model:** the "dispensed today" numbers reset every day, which a
+- **Proposed here, since adopted:** the "dispensed today" numbers reset every day, which a
   consumer wants to know (Home Assistant calls it a total that may reset). An optional
-  hint on a `number` (`"counter": true`, meaning it only grows until it is reset) would say
-  so; until a second device needs it, the label says "today".
+  hint on a `number` would say so. This became the property field `series: "counter"`.
 - `select` options are free tokens per device (`120ml`, `250ml`, `continuous`), a writable
   select may list fewer options than its read-only sibling (`default_amount` has no
   `continuous`), and nothing in the model had to change for that.
@@ -457,11 +459,14 @@ What the tenth device changed:
   - A driver publishes a value only once it has one; whether `available` should be
     published `false` at connect until the first values arrive is what the first driver
     does, and is the intended reading of the role.
-- **Reserved for later, deliberately absent from v0:** one-shot `events` (a cycle
-  finished), and structured values.
+- **Reserved for later, deliberately absent from v0:** structured values. (One-shot events
+  are no longer reserved: they are the `event` type.)
 
 ### Changelog
 
+- `0` (draft): property type `event` (an occurrence, the mirror of `trigger`); role `opened`
+  (valve); kind `siren` (role `on`); property `class` also applies to a writable binary and a
+  trigger, and `category: diagnostic` to a trigger.
 - `0` (draft): descriptor field `groups`: a group with a `kind` is a composite of its own, so a
   device can be a cover and a light, or have two lights (13 of 285 Tuya fixture devices did).
 
@@ -479,7 +484,7 @@ for consumers, JSON Schemas under `schema/`, and example descriptors under `exam
 There is deliberately no reference implementation and no code in any language. Each
 project implements the types and the driver interface in its own language and follows
 the schema. Language-neutral conformance vectors (a list of inputs with the list of
-outputs a driver must produce) are added under `vectors/` when a first driver exists.
+outputs a driver must produce) are still to be added under `vectors/`.
 
 ## 8. Hosting
 

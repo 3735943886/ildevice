@@ -2,7 +2,7 @@
 
 > **Draft, version 0.** A transport mapping for the [IL](il.md). It is a separate layer:
 > the IL model and driver interface do not depend on this document, and another mapping
-> (HTTP, files) can be written the same way. Nothing is implemented yet.
+> (HTTP, files) can be written the same way. This document is specification only.
 
 This document says only how IL data is carried on MQTT. It adds nothing to the model.
 
@@ -56,5 +56,9 @@ If `x-mqtt` is absent the defaults are `<il_prefix>/<id>/<prop>`,
 |---|---|
 | a message on a `set` topic | `Command { prop, value }` |
 | broker connection events | handled by the host; the driver sees `Connected` / `Disconnected` for the *device* link only |
+
+A `trigger` has no state topic (it is never published); only its `set` topic exists. An
+`event` has no `set` topic (it is never written). An empty retained payload means *absent*, so a
+`text` property cannot report the empty string as a value: a producer treats it as absent.
 
 Timers and device I/O are not MQTT's concern and never appear here.

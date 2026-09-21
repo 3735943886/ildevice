@@ -11,6 +11,7 @@ property's `type`, `unit`, `min`/`max`/`step` and `options`).
 |---|---|---|
 | `available` | availability | `bridged_device_basic_information.reachable` |
 | `on` | on/off | `on_off.on_off` |
+| `mode` | `climate.hvac_mode` / `humidifier.mode` / fan preset mode | no standard attribute |
 | `fan_speed` | fan preset mode | `fan_control.fan_mode` |
 | `target_humidity` | `humidifier.target_humidity` | no standard attribute |
 | `current_humidity` | `humidifier.current_humidity` | `relative_humidity_measurement.measured_value` |
