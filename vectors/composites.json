@@ -515,7 +515,7 @@
       "no_composite": []
     },
     {
-      "name": "a writable lock and a writable valve",
+      "name": "a writable lock forms the composite",
       "descriptor": {
         "il": 0,
         "id": "dev1",
@@ -721,6 +721,113 @@
           "kind": "cover"
         }
       ]
+    },
+    {
+      "name": "a writable valve forms the composite (K-6)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "valve",
+        "props": {
+          "v": {
+            "type": "binary",
+            "rw": true,
+            "role": "opened"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "valve",
+          "group": null,
+          "roles": {
+            "opened": "v"
+          },
+          "optional": {}
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a read-only lock is a plain property, not a lock (K-6, S-1)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "lock",
+        "props": {
+          "lk": {
+            "type": "binary",
+            "role": "locked"
+          },
+          "ul": {
+            "type": "trigger",
+            "role": "unlatch"
+          }
+        }
+      },
+      "composites": [],
+      "no_composite": [
+        {
+          "kind": "lock"
+        }
+      ]
+    },
+    {
+      "name": "a read-only valve is a plain property, not a valve (K-6, S-1)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "valve",
+        "props": {
+          "v": {
+            "type": "binary",
+            "role": "opened"
+          }
+        }
+      },
+      "composites": [],
+      "no_composite": [
+        {
+          "kind": "valve"
+        }
+      ]
+    },
+    {
+      "name": "a lock with a read-only locked but a writable second lock group forms only the writable one (K-3, K-6)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "lock",
+        "groups": {
+          "back": {
+            "kind": "lock",
+            "label": "Back door"
+          }
+        },
+        "props": {
+          "lk": {
+            "type": "binary",
+            "role": "locked"
+          },
+          "bk": {
+            "type": "binary",
+            "rw": true,
+            "role": "locked",
+            "group": "back"
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "lock",
+          "group": "back",
+          "roles": {
+            "locked": "bk"
+          },
+          "optional": {}
+        }
+      ],
+      "no_composite": []
     }
   ]
 }

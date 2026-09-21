@@ -334,8 +334,8 @@ properties are only plain properties.
 |---|---|---|
 | `light` | `on` | `brightness`, `color_temperature`, `color`, `color_mode` |
 | `cover` | `position`, or `open`, or `close` | `tilt`, `motion`, `stop`, `open`, `close`, `position` |
-| `lock` | `locked` | `unlatch` |
-| `valve` | `opened` | |
+| `lock` | `locked`, writable | `unlatch` |
+| `valve` | `opened`, writable | |
 | `siren` | `on` | |
 | `switch` | `on` | |
 | `climate` | `target_temperature` | `on`, `mode`, `fan_speed`, `current_temperature`, `current_humidity`, `swing_vertical`, `swing_horizontal`, `action` |
@@ -360,6 +360,11 @@ properties are only plain properties.
   properties. This is not an error.
 - **K-5** Power and mode are separate: a device that reports a mode while off carries the wire's mode
   in `mode` and whether it runs in `on`. A consumer that has a single "off" mode derives it.
+- **K-6** (S-3 says the same of a lock's `locked`.) A `lock` or a `valve` is a thing that is operated, so it requires its role property to be **writable**
+  (`rw`): a `locked` or an `opened` that is read only does not form the composite and is a plain binary property (K-4).
+  This is what S-1 produces when the owner has not asked for remote control: a door that reports `locked` and cannot be
+  unlocked from here is a state to show, not a lock to offer. A consumer MAY present that plain property in a native
+  read-only form (a contact or lock-state sensor); that is presentation of a plain property, not the composite.
 
 ### Groups
 
@@ -434,9 +439,11 @@ and one that is merely `°C`, and between a `binary` that is a fault and one tha
 
 ## 12. Safety
 
-- **S-1** A producer MUST publish `locked`, `opened`, `unlatch`, `disarm` and any control that starts heating or
+- **S-1** A producer MUST publish `locked`, `unlatch`, `disarm` and any control that starts heating or
   motion of a hazardous device (a cooktop ring, a garage door) read only or not at all, unless the
-  owner has asked for remote control. Unlocking or opening is never implied by a role's presence.
+  owner has asked for remote control. Unlocking or opening is never implied by a role's presence. A water valve's
+  `opened` is an ordinary control and is not listed; a producer of a valve on a hazardous supply (gas) treats it like
+  the others.
 - **S-2** A producer SHOULD tie such a control to a property the device reports when remote operation
   is allowed, using `requires`.
 - **S-3** A `locked` property that is not `rw` is a read-only state, not a lock; a consumer MUST NOT

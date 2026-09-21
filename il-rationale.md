@@ -222,7 +222,7 @@ proposals. Each is a default that a later device can overturn by the rules of se
   [notes/tuya-spike-gaps.md](notes/tuya-spike-gaps.md)).
 - Roles for `alarm` and `vacuum` are provisional until a device uses them; `camera` roles wait for
   a device that needs one.
-- Conformance vectors so far cover command validation only ([vectors/](vectors/)); driver
+- Conformance vectors cover command validation, wire values, topics and composites ([vectors/](vectors/)); driver
   input/output sequences wait for a first driver's captured frames.
 
 ## Fan roles `speed`, `oscillate`, `direction`
@@ -232,3 +232,17 @@ percentage, an oscillation switch and a direction. The IL had only the select `f
 publish the three as unrelated properties and a consumer showed them as three extra entities beside the fan.
 `speed` (number, percent), `oscillate` (binary) and `direction` (select, `forward`/`reverse`) are optional roles of
 the `fan` kind; `fan_speed` stays for devices whose speeds are named levels.
+
+## Read-only locks and valves (K-6)
+
+il.md section 10 said a lock needs `locked` and a valve `opened`, and S-1 said a producer publishes both read only unless
+the owner asked for remote control. S-3 already said a `locked` that is not `rw` is no lock, but nothing said it for `opened`, and section 10 did not say when the composite forms. Two consumers
+answered differently in practice (a Home Assistant integration made a binary sensor of it; the wording suggested a lock),
+and a lock that answers every command with an error is worse for a person than a state that says what it is. K-6 settles it
+for the composite: it requires a writable property. A consumer that has a native read-only lock-state concept is not
+prevented from using it for the plain property.
+
+`opened` was also taken out of S-1's list. The first producer with valves (Tuya irrigation valves) offered them as writable, as
+Home Assistant core does; making every water valve read only by default would have made the default useless, while the
+things S-1 exists for (a lock, an alarm's disarm, a garage door, a heating element) stay guarded. A valve on a hazardous
+supply is still covered by the general sentence of S-1.
