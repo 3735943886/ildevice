@@ -304,9 +304,10 @@ Access: `ro` read only; `rw` writable, and a producer MUST NOT declare it read o
 | `color_mode` | select | ro | `white`, `color`, others the device's own (`scene`, `music`) | which mode of the light is showing. Writing `color` or `color_temperature` switches it |
 | `position` | number | rw? | `%`, `0`..`100` | how far a cover is open, `100` fully open, `0` fully closed. A device whose wire counts the other way is inverted by the producer |
 | `tilt` | number | rw? | `%`, `0`..`100` | slat angle of a cover, `100` fully open |
-| `motion` | select | ro | `opening`, `closing`, `stopped` | what a cover is doing now |
+| `cover_state` | select | ro | `open`, `closed`, `opening`, `closing`, `stopped` | where a cover is and what it is doing; `stopped` is halted part way |
 | `open` `close` `stop` | trigger | rw | | move a cover fully open, fully closed, or halt it |
 | `locked` | binary | rw? | | a lock's bolt: `true` locked, `false` unlocked |
+| `lock_state` | select | ro | `locked`, `unlocked`, `locking`, `unlocking`, `jammed`, `open` | a lock's state, including the moves between and a fault; `open` is the latch released |
 | `unlatch` | trigger | rw? | | release a lock's latch without leaving it unlocked (open the door) |
 | `opened` | binary | rw? | | a valve: `true` open, `false` closed |
 | `alarm_state` | select | ro | `disarmed`, `armed_home`, `armed_away`, `armed_night`, `arming`, `pending`, `triggered` | state of an alarm panel |
@@ -316,11 +317,11 @@ Access: `ro` read only; `rw` writable, and a producer MUST NOT declare it read o
 | `start` `pause` `return_home` `locate` | trigger | rw | | start or resume cleaning, pause, send to the dock, make it announce itself |
 | `battery` | number | ro | `%` | battery charge of the device |
 
-- **O-6** `available`, `current_*`, `action`, `color_mode`, `motion`, `alarm_state`, `vacuum_state` and `battery` are read only, and a producer
+- **O-6** `available`, `current_*`, `action`, `color_mode`, `cover_state`, `lock_state`, `alarm_state`, `vacuum_state` and `battery` are read only, and a producer
   MUST NOT declare them `rw`.
 - **O-7** Positions are normalised by the producer to percent with `100` open, whatever the wire,
   its `control_back_mode` or the consumer (Matter counts `0` as open) does.
-- **O-8** A `select` role whose registry values are listed (`motion`, `color_mode`, `alarm_state`, `vacuum_state`) MUST use those
+- **O-8** A `select` role whose registry values are listed (`cover_state`, `lock_state`, `color_mode`, `alarm_state`, `vacuum_state`) MUST use those
   tokens for what they name; the device's own tokens are additions.
 
 ## 10. Kinds and composites
@@ -333,8 +334,8 @@ properties are only plain properties.
 | kind | required roles | optional roles |
 |---|---|---|
 | `light` | `on` | `brightness`, `color_temperature`, `color`, `color_mode` |
-| `cover` | `position`, or `open`, or `close` | `tilt`, `motion`, `stop`, `open`, `close`, `position` |
-| `lock` | `locked`, writable | `unlatch` |
+| `cover` | `position`, or `open`, or `close` | `tilt`, `cover_state`, `stop`, `open`, `close`, `position` |
+| `lock` | `locked`, writable | `lock_state`, `unlatch` |
 | `valve` | `opened`, writable | |
 | `siren` | `on` | |
 | `switch` | `on` | |
@@ -365,6 +366,13 @@ properties are only plain properties.
   This is what S-1 produces when the owner has not asked for remote control: a door that reports `locked` and cannot be
   unlocked from here is a state to show, not a lock to offer. A consumer MAY present that plain property in a native
   read-only form (a contact or lock-state sensor); that is presentation of a plain property, not the composite.
+
+- **K-7** A cover is closed when its `position` is `0`; a cover with no `position` is closed when `cover_state` is `closed`.
+  When both are present `position` decides whether it is closed and `cover_state` says whether it is moving. A cover with
+  neither does not report where it is, and a consumer MAY show its state as assumed.
+- **K-8** `locked` is `true` exactly when `lock_state` is `locked`. A consumer that has `lock_state` uses it for the state
+  (it alone can say `locking`, `unlocking`, `jammed`, `open`) and writes `locked` to lock and unlock; without it, `locked`
+  is the state. `lock_state` alone does not form a lock (K-6).
 
 ### Groups
 

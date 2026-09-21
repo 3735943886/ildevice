@@ -720,7 +720,29 @@
           "if": {
             "properties": {
               "role": {
-                "const": "motion"
+                "const": "cover_state"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "select"
+              },
+              "rw": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "const": "lock_state"
               }
             },
             "required": [

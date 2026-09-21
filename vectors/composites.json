@@ -828,6 +828,113 @@
         }
       ],
       "no_composite": []
+    },
+    {
+      "name": "a cover with only a state is a cover (K-2, K-7)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "cover",
+        "props": {
+          "op": {
+            "type": "trigger",
+            "role": "open"
+          },
+          "cl": {
+            "type": "trigger",
+            "role": "close"
+          },
+          "st": {
+            "type": "select",
+            "role": "cover_state",
+            "options": [
+              "open",
+              "closed",
+              "opening",
+              "closing",
+              "stopped"
+            ]
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "cover",
+          "group": null,
+          "roles": {
+            "open": "op"
+          },
+          "optional": {
+            "close": "cl",
+            "cover_state": "st"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a lock's state is an optional companion of a writable locked (K-6, K-8)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "lock",
+        "props": {
+          "lk": {
+            "type": "binary",
+            "rw": true,
+            "role": "locked"
+          },
+          "ls": {
+            "type": "select",
+            "role": "lock_state",
+            "options": [
+              "locked",
+              "unlocked",
+              "locking",
+              "unlocking",
+              "jammed",
+              "open"
+            ]
+          }
+        }
+      },
+      "composites": [
+        {
+          "kind": "lock",
+          "group": null,
+          "roles": {
+            "locked": "lk"
+          },
+          "optional": {
+            "lock_state": "ls"
+          }
+        }
+      ],
+      "no_composite": []
+    },
+    {
+      "name": "a lock_state alone is not a lock (K-6, K-8)",
+      "descriptor": {
+        "il": 0,
+        "id": "dev1",
+        "kind": "lock",
+        "props": {
+          "ls": {
+            "type": "select",
+            "role": "lock_state",
+            "options": [
+              "locked",
+              "unlocked"
+            ]
+          }
+        }
+      },
+      "composites": [],
+      "no_composite": [
+        {
+          "kind": "lock"
+        }
+      ]
     }
   ]
 }

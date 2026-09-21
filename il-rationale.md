@@ -246,3 +246,15 @@ prevented from using it for the plain property.
 Home Assistant core does; making every water valve read only by default would have made the default useless, while the
 things S-1 exists for (a lock, an alarm's disarm, a garage door, a heating element) stay guarded. A valve on a hazardous
 supply is still covered by the general sentence of S-1.
+
+## Cover and lock states (`cover_state`, `lock_state`)
+
+Found by trying the cover, lock and light roles on Tuya devices. The cover's `motion` (opening, closing, stopped) could
+not say that a cover is closed, so a cover without a `position` (many curtain motors) had no state at all; Tuya
+reports `open`, `closed`, `opening` and `closing` for it. `motion` became `cover_state` with those five values, which also
+names it the way `alarm_state` and `vacuum_state` are named. It was renamed rather than kept beside a second role because
+it had not been used by a released producer. A cover that has a `position` still says whether it is closed by it (K-7).
+
+A lock's `locked` is a boolean, so a bolt that is moving or blocked had no way to be shown; Home Assistant and Matter both
+have `locking`, `unlocking`, `jammed`, and a released latch. `lock_state` is a read-only companion (K-8) and does not replace
+`locked`, which is still what is written and what makes the composite (K-6): a state alone is not a control.

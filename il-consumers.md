@@ -29,9 +29,10 @@ property's `type`, `unit`, `min`/`max`/`step` and `options`).
 | `color_mode` | `light.color_mode` | `color_control.color_mode` |
 | `position` | `cover.current_position` | `window_covering.current_position_lift_percent100ths` (inverted: `0` is open) |
 | `tilt` | `cover.current_tilt_position` | `window_covering.current_position_tilt_percent100ths` (inverted) |
-| `motion` | `cover` opening / closing | `window_covering.operational_status` |
+| `cover_state` | `cover.is_opening` / `is_closing` / `is_closed` | `window_covering.operational_status` |
 | `open` `close` `stop` | `cover.open_cover` / `close_cover` / `stop_cover` | `up_or_open` / `down_or_close` / `stop_motion` |
-| `locked` | `lock.is_locked` | `door_lock.lock_state` |
+| `locked` | `lock.lock` / `unlock` | `door_lock.lock_door` / `unlock_door` |
+| `lock_state` | `lock` state (`locked`, `unlocked`, `locking`, `unlocking`, `jammed`, `open`) | `door_lock.lock_state` |
 | `unlatch` | `lock.open` | `door_lock.unlatch_door` |
 | `opened` | `valve` (`is_closed` is its negation) | `valve_configuration_and_control.current_state` |
 | `alarm_state` | `alarm_control_panel` state | no standard attribute |
