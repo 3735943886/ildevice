@@ -90,7 +90,13 @@
     "energy_save": {
       "type": "binary",
       "rw": true,
-      "category": "config"
+      "category": "config",
+      "requires": {
+        "prop": "mode",
+        "in": [
+          "cool"
+        ]
+      }
     },
     "sleep_timer": {
       "type": "number",

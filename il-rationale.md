@@ -175,6 +175,10 @@ What the tenth device changed:
 
 ## 4. Changelog
 
+- `0` (draft): [il-messages.md](il-messages.md): the transport-independent message forms, snapshot and
+  `sync`, `presence`; il-mqtt.md is now one mapping of them. `requires` may name a `select` and its
+  allowed values; roles and kinds for `alarm` and `vacuum`, role `battery`; property class `datetime`.
+
 - `0` (draft): il.md rewritten as a normative document (RFC 2119 keywords, rule ids, glossary,
   per-kind required roles, class and unit registries, safety and conformance sections); history
   moved here. Additions: `Reject.code` and its list, the rules V-2 (empty text is absent), V-3
@@ -202,7 +206,12 @@ proposals. Each is a default that a later device can overturn by the rules of se
 | Why a write failed | `Reject` carries a `code` from a closed list, plus free text | C-4, C-5 |
 | Step and range check | inclusive range, exact decimal step, 1e-9 tolerance for floats | C-3 |
 | What a composite needs | a required and an optional role list per kind | section 10 |
-| `requires` naming a `select` value | not adopted; still `binary` only | P-5 |
+| `requires` naming a `select` value | adopted as an object form `{ prop, in }`; the string form stays | P-5 |
+| Structured / date-time value | no new type; a `text` with class `datetime` (RFC 3339 with offset). A driver whose wire has no year or zone reports plain text without the class | section 11.1 |
+| `camera`, `alarm_control_panel`, `vacuum` | `alarm` and `vacuum` composites with provisional roles taken from Home Assistant and Matter, not yet tried on a device; `camera` has no composite (motion and recording switches are plain properties) | section 10 |
+| Producer presence | a `presence` message (MQTT: a retained topic with a Last Will) | il-messages.md W-6 |
+| Message size | descriptor 64 KiB, text 1 KiB | W-13 |
+| Transport | none in the model; the data shape is in il-messages.md and MQTT is one mapping | il-messages.md |
 
 ## 6. Open points
 
@@ -211,12 +220,7 @@ proposals. Each is a default that a later device can overturn by the rules of se
 - Whether `group` is enough for multi-component devices or needs a real nested form. `groups` with a
   `kind` is the answer so far (found by the Tuya spike, see
   [notes/tuya-spike-gaps.md](notes/tuya-spike-gaps.md)).
-- `requires` on a condition of a `select` value (the air conditioner's `energy_save` only counts while
-  cooling).
-- A structured or date-time value type. `text` carries them for now (`self_clean_next` is a month-day
-  and time without a year).
-- Roles for `camera`, `alarm_control_panel` and `vacuum` (see the Tuya notes).
-- A producer-level presence signal, so that a consumer can tell "the producer died" from "the device
-  is absent" (an MQTT Last Will covers one connection, not each device on it).
+- Roles for `alarm` and `vacuum` are provisional until a device uses them; `camera` roles wait for
+  a device that needs one.
 - Conformance vectors so far cover command validation only ([vectors/](vectors/)); driver
   input/output sequences wait for a first driver's captured frames.

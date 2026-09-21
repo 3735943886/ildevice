@@ -31,6 +31,11 @@ property's `type`, `unit`, `min`/`max`/`step` and `options`).
 | `locked` | `lock.is_locked` | `door_lock.lock_state` |
 | `unlatch` | `lock.open` | `door_lock.unlatch_door` |
 | `opened` | `valve` (`is_closed` is its negation) | `valve_configuration_and_control.current_state` |
+| `alarm_state` | `alarm_control_panel` state | no standard attribute |
+| `arm_home` `arm_away` `arm_night` `disarm` | `alarm_control_panel` arm / disarm services | no standard attribute |
+| `vacuum_state` | `vacuum` activity | `rvc_operational_state.operational_state` |
+| `start` `pause` `return_home` `locate` | `vacuum` start / pause / return_to_base / locate | `rvc_operational_state` commands |
+| `battery` | `sensor` with `device_class: battery` | `power_source.bat_percent_remaining` |
 
 Non-role fields map too. `class` on a number or binary is the Home Assistant `device_class`
 (`temperature`, `humidity`, `duration`, `energy`, `power`, `volume`, `pm25`, `problem`,
@@ -38,13 +43,14 @@ Non-role fields map too. `class` on a number or binary is the Home Assistant `de
 is `measurement`; `category` is `entity_category`.
 
 Property types map the same way: `event` is an event entity (Home Assistant `event`, one `options` entry per event type), `trigger` is a button (Home Assistant `button`), and a
-property with `requires` is shown unavailable while the property it names is not `true`.
+property with `requires` is shown unavailable while its condition does not hold (the named binary is
+not `true`, or the named select's value is not one of `in`).
 
 A `locked` property that is not `rw` is a read-only state, not a lock: a consumer shows it as a
 binary sensor rather than offering a lock it cannot operate.
 
 A gap in such a table is fine: it is where a consumer falls back to the generic property.
 
-A consumer reads what a producer emits over a transport such as
-[il-mqtt.md](il-mqtt.md), or takes the driver outputs directly when it shares a process
+A consumer reads the messages of [il-messages.md](il-messages.md) over whatever transport carries them
+(for example [il-mqtt.md](il-mqtt.md)), or takes the driver outputs directly when it shares a process
 with the producer.

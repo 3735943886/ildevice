@@ -8,9 +8,11 @@ has, and which of them can be written. Specification only; no code in any langua
 - [il.md](il.md): the model (descriptor, typed properties, roles, kinds, classes, units), the
   command checks, safety rules, the sans-IO driver interface, and conformance. Rules have ids
   (`D-1`, `V-3`, …).
-- [il-mqtt.md](il-mqtt.md): how the IL is carried on MQTT.
+- [il-messages.md](il-messages.md): the messages a producer and a consumer exchange, as data only
+  (no transport: a function call, UDP, HTTP, a file or MQTT can all carry them).
+- [il-mqtt.md](il-mqtt.md): one transport mapping, MQTT.
 - [schema/descriptor.schema.json](schema/descriptor.schema.json): JSON Schema of the descriptor
-  (structure, type/role consistency).
+  (structure, type/role consistency); [schema/message.schema.json](schema/message.schema.json): the messages.
 - [vectors/](vectors/): language-neutral conformance vectors (command validation so far).
 
 **Informative**

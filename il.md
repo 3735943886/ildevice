@@ -34,8 +34,10 @@ written, using no vocabulary of Home Assistant, Matter, Tuya, LG or any one cons
 
 **The IL is sans-IO.** It is data types plus pure functions. It never opens a socket,
 reads a clock, spawns a thread, or knows a topic. Whoever implements it feeds it events and
-carries out what it asks for. How data leaves a producer (MQTT, in-process calls, a file) is
-separate: the MQTT mapping is [il-mqtt.md](il-mqtt.md), and it adds nothing to the model.
+carries out what it asks for. The IL defines only the **shape of the data** (descriptor,
+messages, driver inputs and outputs). How it travels (a function call, UDP, HTTP, a file, MQTT) is a
+transport mapping and adds nothing to the model: the messages are in
+[il-messages.md](il-messages.md), and [il-mqtt.md](il-mqtt.md) is one mapping.
 
 ```
                  ┌──────────── IL (this document): data + pure logic ─────────────┐
@@ -111,7 +113,7 @@ A device is a set of **typed properties**. A property with a standard meaning ca
 | `type` | all (required) | `binary`, `number`, `select`, `text`, `trigger`, `event`. |
 | `rw` | all | `true` if the property accepts writes. Default `false`. |
 | `role` | all | Standard meaning, section 9. |
-| `requires` | all | Name of a `binary` property that must currently be `true` for this property to accept writes (a control that only works while the panel has granted remote start). |
+| `requires` | all | A condition on another property of the device that must currently hold for this property to accept writes. A string names a `binary` property that must be `true` (a control that only works while the panel has granted remote start). An object `{ "prop": "mode", "in": ["cool"] }` names a `select` property whose current value must be one of the listed options (a setting that only counts while cooling). |
 | `group` | all | Names the sub-unit or composite the property belongs to (section 10). |
 | `unit` | number | Unit label (section 11.2). |
 | `min` `max` `step` | number | Range (both inclusive) and increment. |
@@ -129,7 +131,7 @@ A device is a set of **typed properties**. A property with a standard meaning ca
   MUST NOT be `rw`.
 - **P-4** If both are present, `min` MUST be less than or equal to `max`, and `step` MUST be greater
   than zero.
-- **P-5** `requires` MUST name a `binary` property of the same descriptor, other than itself.
+- **P-5** `requires` MUST refer to a property of the same descriptor other than itself: the string form to a `binary` property, the object form to a `select` property with `in` a non-empty list of that property's `options`.
 - **P-6** A consumer MUST NOT interpret `src`.
 
 ## 4. Values
@@ -167,7 +169,7 @@ sent to the device for it.
 |---|---|---|
 | 1 | the property exists | `unknown_property` |
 | 2 | the property is `rw` (a `trigger` always is; an `event` never is) | `read_only` |
-| 3 | if it has `requires`, that binary property is currently `true`; a value the producer has not reported counts as not satisfied | `requires_unmet` |
+| 3 | if it has `requires`, the condition holds now (the named binary is `true`; the named select's value is in `in`); a value the producer has not reported counts as not satisfied | `requires_unmet` |
 | 4 | the payload is of the property's type: `binary` `true`/`false` (also `on`/`off`/`1`/`0`, normalised to `true`/`false`); `number` a finite number; `select` one of `options`; `text` a non-empty string; `trigger` any payload | `invalid_value` |
 | 5 | `number` within `min`..`max`, inclusive | `out_of_range` |
 | 6 | `number` a multiple of `step` counted from `min` (from 0 if there is no `min`) | `bad_step` |
@@ -258,6 +260,8 @@ Driver::handle(now, Input) -> Vec<Output>
 - **R-7** A driver MAY refuse to do a thing at all: an action the device does not truly support is
   not offered as a property, or is answered `unsupported`.
 
+The messages a producer and a consumer exchange are defined in [il-messages.md](il-messages.md).
+
 Nothing here is asynchronous: a host that is async, threaded or blocking all drive it the same
 way. A driver is testable with no environment: feed a list of inputs, assert the list of outputs.
 Pure helpers a driver may use (no I/O): frame parse and build, checksums, hex, the model's value
@@ -302,12 +306,18 @@ Access: `ro` read only; `rw` writable, and a producer MUST NOT declare it read o
 | `locked` | binary | rw? | | a lock's bolt: `true` locked, `false` unlocked |
 | `unlatch` | trigger | rw? | | release a lock's latch without leaving it unlocked (open the door) |
 | `opened` | binary | rw? | | a valve: `true` open, `false` closed |
+| `alarm_state` | select | ro | `disarmed`, `armed_home`, `armed_away`, `armed_night`, `arming`, `pending`, `triggered` | state of an alarm panel |
+| `arm_home` `arm_away` `arm_night` | trigger | rw? | | arm the panel in that mode |
+| `disarm` | trigger | rw? | | disarm the panel |
+| `vacuum_state` | select | ro | `cleaning`, `docked`, `paused`, `returning`, `idle`, `error` | what a robot vacuum is doing |
+| `start` `pause` `return_home` `locate` | trigger | rw | | start or resume cleaning, pause, send to the dock, make it announce itself |
+| `battery` | number | ro | `%` | battery charge of the device |
 
-- **O-6** `available`, `current_*`, `action`, `color_mode` and `motion` are read only, and a producer
+- **O-6** `available`, `current_*`, `action`, `color_mode`, `motion`, `alarm_state`, `vacuum_state` and `battery` are read only, and a producer
   MUST NOT declare them `rw`.
 - **O-7** Positions are normalised by the producer to percent with `100` open, whatever the wire,
   its `control_back_mode` or the consumer (Matter counts `0` as open) does.
-- **O-8** A `select` role whose registry values are listed (`motion`, `color_mode`) MUST use those
+- **O-8** A `select` role whose registry values are listed (`motion`, `color_mode`, `alarm_state`, `vacuum_state`) MUST use those
   tokens for what they name; the device's own tokens are additions.
 
 ## 10. Kinds and composites
@@ -328,10 +338,12 @@ properties are only plain properties.
 | `climate` | `target_temperature` | `on`, `mode`, `fan_speed`, `current_temperature`, `current_humidity`, `swing_vertical`, `swing_horizontal`, `action` |
 | `humidifier` | `on`, `target_humidity` | `mode`, `fan_speed`, `current_humidity`, `current_temperature` |
 | `fan` | `on` | `mode`, `fan_speed` |
+| `alarm` | `alarm_state` | `arm_home`, `arm_away`, `arm_night`, `disarm` |
+| `vacuum` | `vacuum_state` | `start`, `pause`, `return_home`, `locate`, `fan_speed`, `battery` |
 
 `class` refines a kind (`curtain`, `blind`, `garage_door`, `gate`, `door_lock`, `air_conditioner`,
 `dehumidifier`, `air_purifier`); it changes no requirement. Other kinds seen so far
-(`dispenser`, `washer`, `dryer`, `clothing_care`, `cooktop`) have no composite.
+(`dispenser`, `washer`, `dryer`, `clothing_care`, `cooktop`, `camera`) have no composite. A camera's motion and recording switches are plain properties; its stream is outside the IL.
 
 - **K-1** A light is `on` plus whichever of `brightness`, `color_temperature`, `color` it has; a
   consumer derives the supported modes from which roles are present, and none is on/off only.
@@ -397,6 +409,7 @@ and one that is merely `°C`, and between a `binary` that is a fault and one tha
 | binary (read only) | `heat` | true means it is hot |
 | binary (read only) | `door` | true means open |
 | binary (writable) | `outlet` `switch` | the kind of load it switches |
+| text | `datetime` | an instant as RFC 3339 with an offset (`2026-09-21T14:30:00+09:00`) |
 | trigger | `restart` `identify` `update` | what the action does |
 
 ### 11.2 Units
@@ -417,7 +430,7 @@ and one that is merely `°C`, and between a `binary` that is a fault and one tha
 
 ## 12. Safety
 
-- **S-1** A producer MUST publish `locked`, `opened`, `unlatch` and any control that starts heating or
+- **S-1** A producer MUST publish `locked`, `opened`, `unlatch`, `disarm` and any control that starts heating or
   motion of a hazardous device (a cooktop ring, a garage door) read only or not at all, unless the
   owner has asked for remote control. Unlocking or opening is never implied by a role's presence.
 - **S-2** A producer SHOULD tie such a control to a property the device reports when remote operation
@@ -440,9 +453,11 @@ An implementation conforms as one or more of these; each is a list of the rules 
 - **Driver**: R-1..R-7, and section 5 for the writes it receives; passes the vectors in
   [vectors/](vectors/).
 - **Consumer**: X-1..X-5, V-3 (tolerance), P-6, L-1, U-2, K-3, K-4, G-3..G-4, S-3.
-- **Transport mapping**: says, for every driver output and input in section 8, how it is carried,
-  and defines how absence, descriptor removal and a retained or replayed message are told from a new
-  one ([il-mqtt.md](il-mqtt.md) is one).
+- **Messages**: [il-messages.md](il-messages.md) W-1..W-13, checked against
+  [schema/message.schema.json](schema/message.schema.json). A producer also produces snapshots (W-7).
+- **Transport mapping**: says how each message of il-messages.md section 1 is carried and how W-7..W-12
+  are met (absence, descriptor removal, replay of an event, ordering); it defines no field of the model
+  ([il-mqtt.md](il-mqtt.md) is one).
 
 Producers, consumers and mappings claim conformance to an IL version (`il`) and to this document's
 date or revision.

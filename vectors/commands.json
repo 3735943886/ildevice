@@ -69,6 +69,17 @@
           "single",
           "double"
         ]
+      },
+      "eco": {
+        "type": "binary",
+        "rw": true,
+        "requires": {
+          "prop": "mode",
+          "in": [
+            "smart",
+            "silent"
+          ]
+        }
       }
     }
   },
@@ -417,6 +428,52 @@
       "value": true,
       "expect": {
         "reject": "read_only"
+      }
+    },
+    {
+      "name": "select requires met",
+      "rule": "C-1",
+      "state": {
+        "mode": "smart"
+      },
+      "prop": "eco",
+      "value": true,
+      "expect": {
+        "accept": true
+      }
+    },
+    {
+      "name": "select requires met by any listed value",
+      "rule": "C-1",
+      "state": {
+        "mode": "silent"
+      },
+      "prop": "eco",
+      "value": false,
+      "expect": {
+        "accept": false
+      }
+    },
+    {
+      "name": "select requires unmet",
+      "rule": "C-1",
+      "state": {
+        "mode": "jet"
+      },
+      "prop": "eco",
+      "value": true,
+      "expect": {
+        "reject": "requires_unmet"
+      }
+    },
+    {
+      "name": "select requires unmet: not reported",
+      "rule": "C-1",
+      "state": {},
+      "prop": "eco",
+      "value": true,
+      "expect": {
+        "reject": "requires_unmet"
       }
     }
   ]
