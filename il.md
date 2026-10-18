@@ -210,6 +210,11 @@ sent to the device for it.
   it cannot honour the fields it needs.
 - **X-6** A name in this document is not removed from a registry once assigned; it may be marked
   deprecated in [il-rationale.md](il-rationale.md) and keeps its meaning.
+- **X-7** While `il` is `0` the specification is a draft. A breaking change MAY be made without
+  changing `il`, and X-6 does not yet apply. Each such change MUST be marked **breaking** in the
+  [changelog](il-rationale.md#4-changelog). An implementation claiming `il` `0` MUST name the
+  revision (commit) it conforms to. When the draft is frozen, `il` becomes `1` and X-4 to X-6 apply
+  from then on.
 
 ## 8. The driver interface (sans-IO)
 

@@ -25,4 +25,6 @@ has, and which of them can be written. Specification only; no code in any langua
   the rule it breaks in `x-violates`.
 - [notes/](notes/): parity with an existing integration, gaps found by the Tuya spike.
 
-Status: draft, version 0.
+Status: draft, version 0. Until version 1, breaking changes can occur without a version bump
+(rule X-7 in [il.md](il.md#7-compatibility-and-versioning)); implementations name the commit they
+follow.

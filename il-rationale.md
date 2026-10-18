@@ -175,6 +175,10 @@ What the tenth device changed:
 
 ## 4. Changelog
 
+- `0` (draft): rule X-7: while `il` is `0`, breaking changes may be made without bumping `il`; they are
+  marked **breaking** here, and implementations name the revision they conform to. `il` `1` freezes the
+  draft.
+
 - `0` (draft): [il-messages.md](il-messages.md): the transport-independent message forms, snapshot and
   `sync`, `presence`; il-mqtt.md is now one mapping of them. `requires` may name a `select` and its
   allowed values; roles and kinds for `alarm` and `vacuum`, role `battery`; property class `datetime`.
