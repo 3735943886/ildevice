@@ -40,15 +40,20 @@ user-configured templates), and should not have to change it. The descriptor may
 the private extension `x-mqtt` to say where its values are:
 
 ```json
-"x-mqtt": {
+{
+  "x-mqtt": {
   "state": "rusthinq/{id}/{prop}",
   "set":   "rusthinq/{id}/{prop}/set",
   "reject": "rusthinq/{id}/reject"
+  }
 }
 ```
 
 - **M-5** The driver never writes this block: it does not know topics. The MQTT layer of the host
   adds `x-mqtt` to the descriptor when it publishes it.
+
+  This describes the sans-IO boundary, not a required source-file layout. An implementation may
+  put MQTT adaptation in a script, but that adapter code is distinct from the pure driver role.
 - **M-6** `{id}` is the descriptor's `id` and `{prop}` the property name. A property MAY carry its own
   `x-mqtt` with `state` / `set` to override. A consumer that does not speak MQTT ignores `x-mqtt`.
 - **M-7** If `x-mqtt` is absent the defaults are `<il_prefix>/<id>/<prop>`,
@@ -96,7 +101,7 @@ the private extension `x-mqtt` to say where its values are:
 Broker connection events are handled by the host; the driver sees `Connected` / `Disconnected` for
 the *device* link only. Timers and device I/O are not MQTT's concern and never appear here.
 Delivery order (il-messages.md W-9) holds per topic, not across topics: a consumer that sees a value
-before the descriptor holds it by W-5. Retained replay is not an atomic W-7 snapshot: messages can
+before the descriptor may drop it or hold it by W-5. Retained replay is not an atomic W-7 snapshot: messages can
 come from different instants, and an absent property has no retained message. A consumer SHOULD
 start a fresh state cache when establishing subscriptions after a connection loss and MUST NOT
 interpret the absence of a retained message as confirmation of an old cached value. A consumer
@@ -113,6 +118,13 @@ It MAY show partial state while replay proceeds; this mapping provides no replay
   MUST use that exact string, including any instance suffix. The source MUST be non-empty and
   MUST NOT contain `/`, `+`, `#` or NUL. One instance's Last Will must not mark another instance's
   devices offline. Presence means producer reachability, not freshness of each device's values.
+
+### Implementation extensions
+
+Some rusthinq scripts publish descriptors on `<prefix>/<id>/descriptor`. A consumer may support
+this additional discovery filter for interoperability. It is not selected by `x-mqtt`, and does
+not change the canonical descriptor path in M-1. A deployment using only this extension needs
+a consumer that explicitly supports it; see the [compatibility notes](il-consumers.md#compatibility-evidence-for-rusthinq).
 
 ## 5. Not covered
 

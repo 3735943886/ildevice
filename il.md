@@ -111,7 +111,7 @@ A device is a set of **typed properties**. A property with a standard meaning ca
 | field | applies to | meaning |
 |---|---|---|
 | `type` | all (required) | `binary`, `number`, `select`, `text`, `trigger`, `event`. |
-| `rw` | all | `true` if the property accepts writes. Default `false`. |
+| `rw` | all | `true` if the property accepts writes. Default `false`, except `trigger`, which is always writable (P-3). |
 | `role` | all | Standard meaning, section 9. |
 | `requires` | all | A condition on another property of the device that must currently hold for this property to accept writes. A string names a `binary` property that must be `true` (a control that only works while the panel has granted remote start). An object `{ "prop": "mode", "in": ["cool"] }` names a `select` property whose current value must be one of the listed options (a setting that only counts while cooling). |
 | `group` | all | Names the sub-unit or composite the property belongs to (section 10). |
@@ -196,6 +196,10 @@ sent to the device for it.
   device is available while values keep arriving.
 
 ## 7. Compatibility and versioning
+
+The descriptor field `il` is the model compatibility generation, not the specification release
+number. Git releases bundle documents, schemas and vectors; see the
+[release policy](README.md#releases-and-compatibility). For example, release v0.1.0 uses `il: 0`.
 
 - **X-1** A consumer MUST ignore an unknown field, role, class, unit, kind, `category` value, group
   kind or `Reject` code, and treat what it belongs to generically.
@@ -385,12 +389,16 @@ The descriptor's `groups` map names a `group` used by properties. A group withou
 label for the sub-unit (`ch1`, `right`, `zone_a`). A group with a `kind` is a composite of its own:
 
 ```json
+{
+"il": 0,
+"id": "cover-with-light",
 "kind": "cover",
 "groups": { "light": { "kind": "light", "label": "Light" } },
 "props": {
   "position":   { "type": "number", "rw": true, "role": "position", "unit": "%", "min": 0, "max": 100 },
   "switch_led": { "type": "binary", "rw": true, "role": "on",         "group": "light" },
   "brightness": { "type": "number", "rw": true, "role": "brightness", "group": "light", "unit": "%", "min": 1, "max": 100 }
+}
 }
 ```
 
@@ -486,4 +494,5 @@ An implementation conforms as one or more of these; each is a list of the rules 
   ([il-mqtt.md](il-mqtt.md) is one).
 
 Producers, consumers and mappings claim conformance to an IL version (`il`) and to this document's
-date or revision.
+date or revision. Naming a specification release and its commit makes that revision reproducible.
+Schema validation checks structure; it does not by itself prove lifecycle, safety or runtime conformance.

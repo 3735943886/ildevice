@@ -5,9 +5,6 @@
 > how properties of real devices were mapped, what each device changed in the model, and the
 > changelog.
 
-ecosystems use for `μg/m³`; a consumer that compares units should treat U+00B5 and U+03BC
-as the same.
-
 ## 1. Mapping from other property models
 
 The types are the intersection of what devices express and what consumers render,
@@ -146,15 +143,15 @@ What the tenth device changed:
 - **Power and mode stay separate.** The wire reports a mode even while the unit is off, so
   `mode` always carries the wire's mode and `power` says whether it runs; a consumer that
   has a single "off" mode derives it (`power` false).
-- **`action` is a plain read-only select**, not a role: what the unit is doing right now,
-  derived from power, mode and, when the unit reports it, whether it is really cooling.
-  `active` means running in `auto`, where the wire does not say which it is.
+- **`action` began as a plain read-only select and is now a standard role.** It describes what
+  the unit is doing right now, derived from power, mode and, when available, whether it is
+  really cooling. `active` means running in `auto`, where the wire does not say which it is.
 - **A value that only counts in some state.** `energy_save` takes effect only while
   cooling and the appliance forgets it over a power cycle. The driver keeps the wanted
   value, publishes it, and writes it again when the unit next enters cool; the descriptor
-  cannot express "only in cool", and `requires` (a binary that must be true) does not
-  fit a condition on a mode. A `requires` that can name a
-  `select` value is deferred (section 6 below).
+  originally could not express "only in cool" because `requires` accepted only a binary.
+  The current object form, `{ "prop": "mode", "in": ["cool"] }`, expresses that write
+  condition (P-5). Remembering a requested value and reapplying it remains driver policy.
 - **Two properties from one tag.** `filter_remaining` and `filter_used` are computed from
   the same pair of tags (hours left, rated life).
 
@@ -174,6 +171,14 @@ What the tenth device changed:
   are no longer reserved: they are the `event` type.)
 
 ## 4. Changelog
+
+### Unreleased
+
+- Documentation: distinguish release versions from `il`, document the limits of rusthinq
+  compatibility evidence, correct consumer mapping guidance, and separate historical findings
+  from current roles and resolved gaps. No wire format or normative rule is changed.
+
+### Released versions
 
 - **v0.1.0** (2026-10-20, initial specification release; `il: 0`): **breaking**: W-7 snapshots include `absent` for every state-bearing
   property without a current value, and cannot interleave with live updates of that device.
@@ -204,8 +209,11 @@ What the tenth device changed:
 - `0` (draft): descriptor field `groups`: a group with a `kind` is a composite of its own, so a
   device can be a cover and a light, or have two lights (13 of 285 Tuya fixture devices did).
 
-- `0` (draft, unreleased addition): roles for lights (`brightness`, `color_temperature`,
-  `color`, `color_mode`), covers (`position`, `tilt`, `motion`, `open`, `close`, `stop`) and
+- `0` (pre-release draft): light roles `brightness`, `color_temperature`, `color`, `color_mode`;
+  cover roles `position`, `tilt`, `open`, `close`, `stop`; lock roles `locked`, `unlatch`.
+  The provisional cover role `motion` was replaced by `cover_state` before v0.1.0; `lock_state`
+  was added as a read-only companion to `locked`.
+
 
 ## 5. Decisions taken in the specification pass
 
@@ -217,7 +225,7 @@ proposals. Each is a default that a later device can overturn by the rules of se
 | A `select` value the options do not list | a producer lists it or treats the property as absent; a consumer tolerates one it receives | V-3 |
 | Empty `text` vs absent (found by the MQTT mapping, where an empty retained payload means absent) | an empty text is not a value | V-2 |
 | Initial value of `available` | `false` until the first complete state, and after `Disconnected` | A-2 |
-| Why a write failed | `Reject` carries a `code` from a closed list, plus free text | C-4, C-5 |
+| Why a write failed | `Reject` carries a standard `code`, with unknown codes treated as generic failure, plus free text | C-4, C-5 |
 | Step and range check | inclusive range, exact decimal step, 1e-9 tolerance for floats | C-3 |
 | What a composite needs | a required and an optional role list per kind | section 10 |
 | `requires` naming a `select` value | adopted as an object form `{ prop, in }`; the string form stays | P-5 |
@@ -239,7 +247,9 @@ proposals. Each is a default that a later device can overturn by the rules of se
 - Conformance vectors cover command validation, wire values, topics and composites ([vectors/](vectors/)); driver
   input/output sequences wait for a first driver's captured frames.
 
-## Fan roles `speed`, `oscillate`, `direction`
+## 7. Subsequent design decisions
+
+### Fan roles `speed`, `oscillate`, `direction`
 
 Found by comparing a Tuya producer with Home Assistant core's tuya fans: a fan there is one entity with a
 percentage, an oscillation switch and a direction. The IL had only the select `fan_speed`, so a producer had to
@@ -247,7 +257,7 @@ publish the three as unrelated properties and a consumer showed them as three ex
 `speed` (number, percent), `oscillate` (binary) and `direction` (select, `forward`/`reverse`) are optional roles of
 the `fan` kind; `fan_speed` stays for devices whose speeds are named levels.
 
-## Read-only locks and valves (K-6)
+### Read-only locks and valves (K-6)
 
 il.md section 10 said a lock needs `locked` and a valve `opened`, and S-1 said a producer publishes both read only unless
 the owner asked for remote control. S-3 already said a `locked` that is not `rw` is no lock, but nothing said it for `opened`, and section 10 did not say when the composite forms. Two consumers
@@ -261,7 +271,7 @@ Home Assistant core does; making every water valve read only by default would ha
 things S-1 exists for (a lock, an alarm's disarm, a garage door, a heating element) stay guarded. A valve on a hazardous
 supply is still covered by the general sentence of S-1.
 
-## Cover and lock states (`cover_state`, `lock_state`)
+### Cover and lock states (`cover_state`, `lock_state`)
 
 Found by trying the cover, lock and light roles on Tuya devices. The cover's `motion` (opening, closing, stopped) could
 not say that a cover is closed, so a cover without a `position` (many curtain motors) had no state at all; Tuya

@@ -53,9 +53,9 @@ device):
   devices' own `available` last said. It does not delete the devices. Absence of any `presence`
   message means the producer is assumed present.
 
-Examples:
+Independent message examples (JSON Lines; not one JSON document or a complete session):
 
-```json
+```jsonl
 { "msg": "descriptor", "descriptor": { "il": 0, "id": "d1", "props": { "power": { "type": "binary", "rw": true, "role": "on" } } } }
 { "msg": "value",   "id": "d1", "prop": "power", "value": true }
 { "msg": "absent",  "id": "d1", "prop": "power" }

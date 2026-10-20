@@ -1,4 +1,4 @@
-# Tuya spike: what the IL and il_ha cannot yet express
+# Tuya spike: historical gaps and their status
 
 Informative, not part of the specification. Result of a throwaway spike (2026-09-21):
 tuya2ha v2's `classify()` output for the 285 fixture devices of Home Assistant core's `tuya`
@@ -12,6 +12,13 @@ count). Not compared: values (read conversion), commands (write), availability, 
 (core uses translation keys), and the `climate`, `humidifier` and `fan` platforms (42 entities),
 whose descriptors the spike did not attempt.
 
+## Current reading of this historical result
+
+The counts and test totals below belong to the original spike, not a current conformance run.
+`il_ha` is the historical consumer name. The model now has `alarm` and `vacuum` composites;
+this does not establish device-level parity for them. Camera streams remain outside IL.
+The prototype script path above is a historical reference, not a bundled runnable tool.
+
 ## The three categories chosen for the spike (`kg`, `dj`, `cl`: 59 entities)
 
 Reproduced except four differences, all in the list below (`switch` device class ×3, one device
@@ -21,7 +28,7 @@ with two lights).
 
 | # | gap | size | kind | note |
 |---|---|---|---|---|
-| 1 | **PARTLY RESOLVED: `valve` (role `opened`), `siren` (role `on`) and `event` (new property type `event`) done. Still open: `camera` 9, `alarm_control_panel` 2, `vacuum` 2 (13 entities).** Was: platforms with no IL role or il_ha platform: `valve` 14, `event` 14, `camera` 9, `siren` 5, `alarm_control_panel` 2, `vacuum` 2 | 46 entities | IL + il_ha | Needs roles or kinds first. `event` is not a property value (it is an occurrence); `valve`, `siren`, `alarm_control_panel`, `vacuum` are composites like `cover`. |
+| 1 | **PARTLY RESOLVED: `valve` (role `opened`), `siren` (role `on`) and `event` (new property type `event`) done. The model now defines `alarm` and `vacuum`; their spike parity is unverified. Camera streams remain outside IL (9 entities in the original comparison).** Was: platforms with no IL role or il_ha platform: `valve` 14, `event` 14, `camera` 9, `siren` 5, `alarm_control_panel` 2, `vacuum` 2 | 46 entities | IL + il_ha | Needs roles or kinds first. `event` is not a property value (it is an occurrence); `valve`, `siren`, `alarm_control_panel`, `vacuum` are composites like `cover`. |
 | 2 | **RESOLVED (draft): `groups` with a `kind`.** Was: `kind` is singular, one composite per kind: a device needing two composites, or two of the same | 13 devices | IL | `clkg` cover + light (3), `cs` fan + humidifier (6), `fs` fan + light, `kt` climate + light; `dj_hpc8ddyfv85haxa7` has two lights (`switch_led`, `switch_1`). The second composite is silently dropped or degrades to plain properties. Needs a per-property or per-group way to say which composite a role belongs to (`group` already exists for sub-units). |
 | 3 | **RESOLVED (draft, il_ha + `il.md` `class` row).** Was: **`class` on a writable binary is ignored** (`switch` device class `outlet`) | 89 | il_ha | The IL text says a binary `class` means what being true means, so an outlet is a stretch, but core sets it on every `kg`/`cz`/`pc` switch. Either allow `class` on `rw` binary in the spec or leave it to il_ha's rule. |
 | 4 | **RESOLVED (`il.md` `category` row, il_ha).** Was: **`category` is dropped for a trigger** (`diagnostic` button: `factory_reset`) | 2 | il_ha | il_ha applies `diagnostic` only to read-only properties, and a trigger is always writable. |
@@ -71,7 +78,8 @@ three rules. A residue: core's doorbell `alarm_message` event also carries the d
 text as an attribute (`message`); an IL `event` carries only the kind, so a producer that wants to
 keep the text publishes it as a sibling `text` property.
 
-## Suggested order
+## Remaining validation
 
-1. Gap 1, what is left: `camera` (motion/recording switches only; the stream is
-   out of scope), `alarm_control_panel`, `vacuum`.
+Repeat the comparison with real alarm and vacuum descriptors and command/state captures.
+For cameras, compare only ordinary motion/recording properties; streaming is outside IL.
+The original static entity counts do not establish runtime compatibility.

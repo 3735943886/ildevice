@@ -12,7 +12,7 @@ property's `type`, `unit`, `min`/`max`/`step` and `options`).
 | `available` | availability | `bridged_device_basic_information.reachable` |
 | `on` | on/off | `on_off.on_off` |
 | `mode` | `climate.hvac_mode` / `humidifier.mode` / fan preset mode | no standard attribute |
-| `fan_speed` | fan preset mode | `fan_control.fan_mode` |
+| `fan_speed` | fan percentage derived from ordered levels; climate fan mode | `fan_control.fan_mode` |
 | `speed` | `fan.percentage` | `fan_control.percent_setting` |
 | `oscillate` | `fan.oscillating` | `fan_control.rock_setting` |
 | `direction` | `fan.direction` | `fan_control.airflow_direction` |
@@ -41,20 +41,63 @@ property's `type`, `unit`, `min`/`max`/`step` and `options`).
 | `start` `pause` `return_home` `locate` | `vacuum` start / pause / return_to_base / locate | `rvc_operational_state` commands |
 | `battery` | `sensor` with `device_class: battery` | `power_source.bat_percent_remaining` |
 
-Non-role fields map too. `class` on a number or binary is the Home Assistant `device_class`
-(`temperature`, `humidity`, `duration`, `energy`, `power`, `volume`, `pm25`, `problem`,
-`running`, `heat`, …); `series: counter` is `state_class: total_increasing` and `gauge`
-is `measurement`; `category` is `entity_category`.
+Non-role fields map too. A property `class` maps to a supported Home Assistant `device_class`
+when the platform recognises it; spellings are not always identical (`datetime` maps to
+`timestamp`). `series: counter` normally maps to `state_class: total_increasing`, and `gauge`
+to `measurement`, subject to that platform's device-class restrictions. `category` maps to
+`entity_category`. Unknown classes do not prevent the property from being used.
 
 Property types map the same way: `event` is an event entity (Home Assistant `event`, one `options` entry per event type), `trigger` is a button (Home Assistant `button`), and a
-property with `requires` is shown unavailable while its condition does not hold (the named binary is
-not `true`, or the named select's value is not one of `in`).
+plain control with `requires` can be shown unavailable while its condition does not hold (the
+named binary is not `true`, or the named select's value is not one of `in`). For a composite,
+check the condition of the specific property being written; one conditional setting need not
+make the entire composite unavailable. The producer still validates every write.
 
-A `locked` property that is not `rw` is a read-only state, not a lock: a consumer shows it as a
-binary sensor rather than offering a lock it cannot operate.
+A `locked` or `opened` property that is not `rw` is a read-only state and does not form a lock
+or valve composite (K-6). A binary sensor or a native read-only presentation can show it.
 
 A gap in such a table is fine: it is where a consumer falls back to the generic property.
 
 A consumer reads the messages of [il-messages.md](il-messages.md) over whatever transport carries them
 (for example [il-mqtt.md](il-mqtt.md)), or takes the driver outputs directly when it shares a process
 with the producer.
+
+## State recovery and commands
+
+A `sync` snapshot contains the descriptor and one `value` or `absent` for every state-bearing
+property (W-7). An identical descriptor is not a command to clear the cache. Removed or
+redefined properties must not retain their old cached meaning. Events are occurrences and
+are never replayed as state.
+
+MQTT retained replay restores individual topics and does not provide an atomic snapshot or
+a replay-complete marker. Follow [the MQTT recovery guidance](il-mqtt.md#4-mapping-the-messages)
+when reconnecting; absence of a retained message does not establish freshness of an old value.
+
+Commands have no correlated success acknowledgement or deadline (W-12). A successful trigger
+or unchanged write can be silent. Show observed state and explicit rejections without treating
+silence as success, and avoid automatically retrying an action whose outcome is uncertain.
+
+## Compatibility evidence for rusthinq
+
+The 2026-10-20 source review found that `rusthinq-scripts/modules/il_common.rhai` publishes
+retained descriptors on `<prefix>/<id>/descriptor`, sets `x-mqtt` for property and command
+topics, and uses `il: 0`. The `/descriptor` discovery path is an implementation extension
+supported by ildevice-homeassistant; it is not the canonical M-1 discovery path.
+
+The Home Assistant consumer's 219 passing tests at that review included stored rusthinq
+fixtures, command routing and `/descriptor` discovery. This supports compatibility of that
+consumer path, not a claim that the current producer fully conforms to v0.1.0. The review did
+not run the rusthinq test suite or exercise a physical device. In particular:
+
+- W-7's revised `sync` snapshot does not directly change the MQTT command or state payloads.
+- M-13 needs verification for a property's type, unit or meaning changing on the same topic;
+  removing obsolete topics alone does not establish compliance.
+- The reviewed helper sets `source` to `rusthinq`. If several instances publish presence under
+  the same prefix, each needs a distinct matching source in its descriptors and presence topic
+  (M-14). A fixed source alone is not evidence of a failure when presence is unused.
+- The helper publishes availability as true during initialisation. Full A-2 compliance requires
+  evidence that a complete, current device state is available at that point.
+
+The sans-IO driver interface is a conformance target; a script that performs publication through
+its context is not thereby proven to implement that interface. Claims should name the release,
+commit and conformance profiles actually checked.

@@ -27,7 +27,9 @@ has, and which of them can be written. Specification only; no code in any langua
 
 ## Releases and compatibility
 
-Current specification release: **v0.1.0** (2026-10-20); descriptor version: **`il: 0`**.
+Latest tagged specification release: **v0.1.0** (2026-10-20); descriptor version: **`il: 0`**.
+The working tree may include [unreleased documentation corrections](il-rationale.md#unreleased);
+use the tag or its commit when you need the exact released text.
 [VERSION](VERSION) records the release number. A Git tag `v<version>` identifies the matching
 bundle of documents, schemas, examples and conformance vectors. Published tags are immutable.
 Release notes are in the [changelog](il-rationale.md#4-changelog).
@@ -46,3 +48,11 @@ The release number and descriptor field `il` serve different purposes:
 
 Implementations should name the specification release and its commit. Automated conformance
 checks should pin the tag's full commit SHA so that the tested schemas and vectors are reproducible.
+
+## Implementation compatibility
+
+Specification versioning does not automatically certify an implementation. Schema validation,
+consumer fixture tests, producer lifecycle checks and physical-device tests provide different
+evidence. See [consumer and rusthinq compatibility notes](il-consumers.md#compatibility-evidence-for-rusthinq)
+for the reviewed MQTT path and remaining checks. In particular, rusthinq's `/descriptor`
+discovery extension requires explicit consumer support.

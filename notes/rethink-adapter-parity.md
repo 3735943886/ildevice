@@ -1,6 +1,8 @@
 # Parity with the rethink adapter's Home Assistant entities
 
-Informative, not part of the specification. A consumer that replaces an existing integration
+**Historical comparison; informative, not part of the specification.** The observations below
+record the original installation and do not certify current driver or consumer conformance.
+A consumer that replaces an existing integration
 wants the same entities under the same ids; this records, for the first installation, how the
 entities the rethink adapter created in Home Assistant line up with the IL descriptors of the
 rusthinq drivers, and what the comparison changed in the IL.
@@ -31,7 +33,8 @@ tokens are stable identifiers; a consumer makes them readable, `wool_knitwear` t
   `fan_speed`, `target_*`, `current_*`, `swing_*`, `action`. Their `unique_id`s (`<id>-climate`,
   `<id>-humidifier`) have no descriptor property; a consumer that wants to keep them names them itself.
 - **`off_timer` of the dehumidifier.** The adapter shows hours (0..9, step 1); the IL says minutes
-  (0..540, step 60), because the wire is minutes and the IL carries the wire's unit. A consumer that
+  (0..540, step 60), because the producer chose minutes as the declared IL unit. IL values use the declared unit,
+  which need not be the wire unit. A consumer that
   keeps the old entity converts.
 - **Read-only twins.** For the water purifier's settings the adapter created both a diagnostic
   `binary_sensor` / `sensor` and a writable `switch` / `select` under the same suffix. The IL has one
