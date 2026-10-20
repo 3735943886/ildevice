@@ -80,13 +80,18 @@ language's equivalent of them) and needs no serialisation; the data model is the
 
 ## 3. Current state, replay and ordering
 
-A consumer that starts after a producer needs the current state. Transports that store the latest
-message per topic (MQTT's retained messages) provide it themselves; one that does not relies on `sync`.
+A consumer that starts after a producer needs the current state. A transport may restore stored
+state itself (MQTT uses retained messages); otherwise the consumer requests a snapshot with `sync`.
+A transport mapping must state whether replay is atomic and how absent values clear cached state;
+MQTT's per-topic replay is not an atomic snapshot (il-mqtt.md section 4).
 
 - **W-7** A producer MUST be able to produce, for a device, its **snapshot**: the `descriptor` message,
-  then one `value` message for every property that has a value now, in any order. It MUST NOT include
-  an `absent`, `event` or `reject` message in a snapshot, and MUST answer a `sync` with the snapshots
-  of the devices asked for, followed by no other message that belongs to them.
+  then exactly one `value` or `absent` message for each state-bearing property (`binary`, `number`,
+  `select`, `text`), in any order. A missing value MUST be represented by `absent`, so a consumer
+  that already has state can discard stale values. A snapshot MUST NOT include `event` or `reject`.
+  A producer MUST answer `sync` with the snapshots of the devices asked for and then resume live
+  updates. For each device, the snapshot MUST represent one logical point in time; live updates
+  for that device MUST NOT interleave with its snapshot. A descriptor alone is not a cache reset.
 - **W-8** An `event` is an occurrence, not state: a transport MUST NOT replay it, and a snapshot never
   contains one. A consumer that is handed an event it knows to be a replay MUST ignore it.
 - **W-9** Messages of one device from one producer are delivered in the order they were produced, and a
@@ -98,9 +103,13 @@ message per topic (MQTT's retained messages) provide it themselves; one that doe
 - **W-11** Delivery guarantees (at most once, at least once) belong to the transport. A consumer MUST
   tolerate a repeated `value` or `absent`; a repeated `event` is a repeated occurrence (il.md section
   4), so a transport that duplicates messages MUST NOT be used for events without saying so.
-- **W-12** A write is answered by its effect (a new `value`) or by a `reject`; the IL defines no
-  other acknowledgement. A `command` MUST NOT be replayed: a transport that stores messages MUST NOT
-  store or replay it.
+- **W-12** A write's observable effect is reported through ordinary state updates; a failed write
+  is reported by `reject`. The IL defines no success acknowledgement, command correlation or
+  completion deadline. A successful trigger, or a write of the value already held, MAY produce no
+  state update. Silence MUST NOT be interpreted as success or failure, and a state update alone
+  does not identify which command caused it. A `command` MUST NOT be replayed: a transport that
+  stores messages MUST NOT store or replay it. A consumer SHOULD NOT automatically retry a trigger
+  after an uncertain outcome; the action might already have happened.
 
 ## 4. Size
 

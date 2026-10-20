@@ -454,7 +454,9 @@ and one that is merely `°C`, and between a `binary` that is a fault and one tha
 
 - **S-1** A producer MUST publish `locked`, `unlatch`, `disarm` and any control that starts heating or
   motion of a hazardous device (a cooktop ring, a garage door) read only or not at all, unless the
-  owner has asked for remote control. Unlocking or opening is never implied by a role's presence. A water valve's
+  owner has asked for remote control. A `trigger` cannot be read only (P-3): a producer MUST
+  omit such a trigger until remote control is authorised, and emit a changed descriptor (D-5)
+  when it adds or removes it. Unlocking or opening is never implied by a role's presence. A water valve's
   `opened` is an ordinary control and is not listed; a producer of a valve on a hazardous supply (gas) treats it like
   the others.
 - **S-2** A producer SHOULD tie such a control to a property the device reports when remote operation

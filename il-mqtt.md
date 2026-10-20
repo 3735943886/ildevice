@@ -23,9 +23,11 @@ messages). It adds nothing to the model. MQTT 3.1.1 or 5.
 
 - **M-1** `il_prefix` defaults to `il` and is the one thing a consumer must be configured with.
   A consumer subscribes to `<il_prefix>/+` and discovers every device.
-- **M-2** With the default topic layout, a device `id` MUST NOT contain `/`, `+`, `#` or NUL, MUST NOT
-  be empty and MUST NOT start with `_` (reserved for M-12). A producer whose ids do may use `x-mqtt`
-  locations that avoid them.
+- **M-2** A device `id` MUST NOT contain `/`, `+`, `#` or NUL, MUST NOT be empty and MUST NOT
+  start with `_` (reserved for M-12). This applies even with `x-mqtt`: the descriptor is still
+  discovered on `<il_prefix>/<id>`. A host with an incompatible upstream id MUST assign a stable,
+  collision-free MQTT-compatible IL id (D-1); it MAY retain the upstream id in `identifiers`.
+  `x-mqtt` changes value and command locations, not descriptor discovery or device identity.
 - **M-3** A consumer MUST ignore a retained message on an `event` topic: it is an old occurrence the
   broker replays, not a new one (il-messages.md W-8).
 - **M-4** A `trigger` has no state topic (it is never published); only its `set` topic exists. An
@@ -89,12 +91,28 @@ the private extension `x-mqtt` to say where its values are:
 | `reject` | publish `{ "prop", "code", "reason" }` (not retained) on the `reject` topic |
 | `presence` | M-12 |
 | `command` | a message on a `set` topic; the producer applies the checks of il.md section 5 |
-| `sync` | not used: retained messages already give a late consumer the snapshot (il-messages.md W-7) |
+| `sync` | not used: retained messages restore the latest stored state per topic; see below |
 
 Broker connection events are handled by the host; the driver sees `Connected` / `Disconnected` for
 the *device* link only. Timers and device I/O are not MQTT's concern and never appear here.
 Delivery order (il-messages.md W-9) holds per topic, not across topics: a consumer that sees a value
-before the descriptor holds it by W-5.
+before the descriptor holds it by W-5. Retained replay is not an atomic W-7 snapshot: messages can
+come from different instants, and an absent property has no retained message. A consumer SHOULD
+start a fresh state cache when establishing subscriptions after a connection loss and MUST NOT
+interpret the absence of a retained message as confirmation of an old cached value. A consumer
+that preserves its cache needs another way to establish freshness before trusting old values.
+It MAY show partial state while replay proceeds; this mapping provides no replay-complete marker.
+
+- **M-13** Before publishing a changed descriptor, a producer MUST clear retained state on old
+  topics for properties it removes, changes type, or moves to another state topic. It MUST also
+  clear state whose meaning changes (including unit or role). It then publishes the descriptor,
+  followed by current values on the new topics. Unchanged properties MAY keep their retained
+  values. Consumers MUST discard cached values of removed or redefined properties. No ordering
+  across these topics is guaranteed; consumers MUST tolerate transient absent or partial state.
+- **M-14** Every producer instance MUST use a distinct `source` for presence, and its descriptors
+  MUST use that exact string, including any instance suffix. The source MUST be non-empty and
+  MUST NOT contain `/`, `+`, `#` or NUL. One instance's Last Will must not mark another instance's
+  devices offline. Presence means producer reachability, not freshness of each device's values.
 
 ## 5. Not covered
 

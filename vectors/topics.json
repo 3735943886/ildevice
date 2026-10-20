@@ -1,5 +1,5 @@
 {
-  "description": "Where values live, il-mqtt.md sections 1-2. `layouts`: a descriptor (only its id, its `x-mqtt` and its props matter), the il_prefix, and the topics a consumer must use. `presence`: M-12. `device_ids`: ids a producer may (M-2) and may not use with the default layout.",
+  "description": "Where values live, il-mqtt.md sections 1-2. `layouts`: a descriptor (only its id, its `x-mqtt` and its props matter), the il_prefix, and the topics a consumer must use. `presence`: M-12. `device_ids`: ids a producer may (M-2) and may not use with this MQTT mapping, including x-mqtt overrides.",
   "layouts": [
     {
       "name": "defaults (M-7)",

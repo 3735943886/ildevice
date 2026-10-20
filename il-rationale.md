@@ -175,6 +175,16 @@ What the tenth device changed:
 
 ## 4. Changelog
 
+- **v0.1.0** (2026-10-20, initial specification release; `il: 0`): **breaking**: W-7 snapshots include `absent` for every state-bearing
+  property without a current value, and cannot interleave with live updates of that device.
+  This makes a repeated `sync` clear stale cached values. **Breaking**: M-2's MQTT id restrictions
+  also apply with `x-mqtt`; overriding state topics cannot change descriptor discovery.
+  Clarified W-12: state updates are observations, not correlated success acknowledgements;
+  successful triggers and unchanged writes can be silent. S-1 explicitly requires unauthorised
+  triggers to be omitted. M-13 defines retained cleanup for descriptor changes; M-14 makes
+  producer-instance presence identities unambiguous. MQTT retained replay is explicitly partial,
+  not an atomic snapshot, and a fresh consumer cache is recommended on reconnection.
+
 - `0` (draft): rule X-7: while `il` is `0`, breaking changes may be made without bumping `il`; they are
   marked **breaking** here, and implementations name the revision they conform to. `il` `1` freezes the
   draft.
